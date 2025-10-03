@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client'; // Corrected import
+import { createClient } from '@/lib/supabase/client'; 
 import { useRouter } from 'next/navigation';
 import { type AuthChangeEvent, type Session } from '@supabase/supabase-js'; // Import types
 
