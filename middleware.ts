@@ -18,42 +18,28 @@ export async function middleware(request: NextRequest) {
         },
         set(name: string, value: string, options: CookieOptions) {
           request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
+          response = NextResponse.next({ request: { headers: request.headers } })
           response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
           request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
+          response = NextResponse.next({ request: { headers: request.headers } })
           response.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
-  // Esta línea es crucial. Refresca la sesión y obtiene los datos del usuario.
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Lógica de protección de rutas
-  const protectedPaths = ['/dashboard', '/projects'] // <-- Define aquí tus rutas protegidas
+  const protectedPaths = ['/dashboard', '/projects']
   const currentPath = request.nextUrl.pathname
 
-  // Si el usuario no está autenticado y trata de acceder a una ruta protegida...
   if (!user && protectedPaths.some(path => currentPath.startsWith(path))) {
-    // ...lo redirigimos a la página de login.
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
   
-  // Si el usuario ya está autenticado y trata de ir a la página de login...
   if (user && currentPath.startsWith('/auth/login')) {
-    // ...lo redirigimos a la página principal o al dashboard.
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -62,13 +48,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

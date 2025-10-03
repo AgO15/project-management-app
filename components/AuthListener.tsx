@@ -9,21 +9,15 @@ export function AuthListener() {
   const router = useRouter();
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      // Prioridad 1: Si es un evento de recuperación, envía a la página de actualizar contraseña.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         router.push('/update-password');
       } 
-      // Prioridad 2: Para cualquier otro inicio de sesión o refresco, solo actualiza la página.
-      else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      else if (event === 'SIGNED_IN') {
         router.refresh();
       }
-      // Prioridad 3: Si el usuario cierra sesión, llévalo al login.
       else if (event === 'SIGNED_OUT') {
         router.push('/auth/login');
-        router.refresh();
       }
     });
 
@@ -32,5 +26,5 @@ export function AuthListener() {
     };
   }, [router, supabase]);
 
-  return null; // Este componente no renderiza nada
+  return null;
 }
