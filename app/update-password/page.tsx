@@ -36,7 +36,7 @@ export default function UpdatePasswordPage() {
       toast.success("¡Contraseña actualizada con éxito! Serás redirigido.");
       // Redirige al usuario al dashboard o a la página principal después de un momento
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard");
       }, 2000);
     }
     setIsSubmitting(false);

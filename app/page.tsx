@@ -1,27 +1,22 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { ChatComponent } from "@/components/chat-component"
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  const supabase = await createClient()
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect("/auth/login")
+  // Si el usuario ya tiene una sesión activa, lo enviamos al dashboard.
+  // Si no, simplemente muestra esta página de bienvenida pública.
+  if (user) {
+    redirect('/dashboard');
   }
 
   return (
-    <main className="min-h-screen bg-background p-8">
-      <div className="container mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 text-balance">Granular Task Dashboard</h1>
-          <p className="text-muted-foreground text-pretty">
-            Chat with your AI assistant to manage and break down your tasks into actionable steps
-          </p>
-        </div>
-
-        <ChatComponent />
-      </div>
-    </main>
-  )
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+      <h1 className="text-4xl font-bold mb-4">Bienvenido a tu App de Gestión</h1>
+      <p className="text-lg text-muted-foreground">
+        Por favor, <a href="/auth/login" className="underline font-semibold">inicia sesión</a> para continuar.
+      </p>
+    </div>
+  );
 }
