@@ -1,8 +1,9 @@
-"use client";
+// components/ui/AuthListener.tsx
+'use client';
 
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export function AuthListener() {
   const supabase = createClient();
@@ -10,13 +11,10 @@ export function AuthListener() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        router.push('/update-password');
-      } 
-      else if (event === 'SIGNED_IN') {
+      // Ya no manejamos 'PASSWORD_RECOVERY' aquí
+      if (event === 'SIGNED_IN') {
         router.refresh();
-      }
-      else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT') {
         router.push('/auth/login');
       }
     });
