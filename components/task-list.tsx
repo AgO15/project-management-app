@@ -51,6 +51,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
   const [sortBy, setSortBy] = useState("created_at")
   const router = useRouter()
   const { toast } = useToast()
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({})
 
   const [taskNotes, setTaskNotes] = useState<Record<string, any[]>>({})
   const [taskFiles, setTaskFiles] = useState<Record<string, any[]>>({})
@@ -220,34 +221,36 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
         </div>
       )}
       {/* Filters and Sorting */}
-      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:gap-4 items-start sm:items-center sm:justify-between">
-        <div className="col-span-2 sm:col-auto hidden sm:block" />
-        <div className="flex gap-3 col-span-1">
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-full sm:w-32 h-11 text-base">
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tasks</SelectItem>
-              <SelectItem value="todo">To Do</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-36 h-11 text-base">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="created_at">Created Date</SelectItem>
-              <SelectItem value="priority">Priority</SelectItem>
-              <SelectItem value="due_date">Due Date</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="w-full flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="w-full max-w-md grid grid-cols-2 gap-3">
+          <div>
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-full h-11 text-base">
+                <SelectValue placeholder="Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tasks</SelectItem>
+                <SelectItem value="todo">To Do</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full h-11 text-base">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_at">Created Date</SelectItem>
+                <SelectItem value="priority">Priority</SelectItem>
+                <SelectItem value="due_date">Due Date</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="text-sm text-muted-foreground col-span-2 sm:col-auto">
+        <div className="text-sm text-muted-foreground">
           {filteredTasks.length} of {tasks.length} tasks
         </div>
       </div>
@@ -278,7 +281,26 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                           {task.title}
                         </h3>
                         {task.description && (
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+                          (() => {
+                            const isExpanded = !!expandedDescriptions[task.id]
+                            const maxLen = 140
+                            const text = task.description
+                            const shouldTruncate = text.length > maxLen && !isExpanded
+                            const displayed = shouldTruncate ? `${text.slice(0, maxLen)}...` : text
+                            return (
+                              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                                {displayed}
+                                {shouldTruncate ? (
+                                  <button
+                                    className="ml-1 underline text-green-700"
+                                    onClick={() => setExpandedDescriptions({ ...expandedDescriptions, [task.id]: true })}
+                                  >
+                                    View more
+                                  </button>
+                                ) : null}
+                              </p>
+                            )
+                          })()
                         )}
                       </div>
 
@@ -349,9 +371,6 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                     </div>
 
                     <div className="mt-3 pt-3 border-t border-border space-y-3">
-                      <div className="sm:max-w-xs">
-                        <Button className="w-full sm:w-auto mb-2" variant="default">Start Timer</Button>
-                      </div>
                       <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
                       <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} />
                       <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />
