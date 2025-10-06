@@ -40,16 +40,16 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
   };
 
   return (
-    <div className="p-4 border-b">
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex items-start gap-4 flex-grow">
+    <div className="p-3 sm:p-4 border-b">
+      <div className="flex justify-between items-start gap-3 sm:gap-4">
+        <div className="flex items-start gap-3 sm:gap-4 flex-grow">
           <div
-            className="w-4 h-4 rounded-full mt-2 flex-shrink-0"
+            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full mt-2 flex-shrink-0"
             style={{ backgroundColor: project.color }}
           />
           <div className="flex-grow">
             {/* New container for title and badge */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <EditableText
                 as="h1"
                 initialValue={project.name}

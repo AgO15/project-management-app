@@ -220,7 +220,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
         </div>
       )}
       {/* Filters and Sorting */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
         <div className="flex gap-3">
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-32">
@@ -259,19 +259,19 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
 
           return (
             <Card key={task.id} className="hover:shadow-sm transition-shadow">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={task.status === "completed"}
                     onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? "completed" : "todo")}
-                    className="mt-1"
+                    className="mt-1 h-5 w-5"
                   />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <h3
-                          className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"}`}
+                          className={`font-medium text-base sm:text-lg ${task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"}`}
                         >
                           {task.title}
                         </h3>
@@ -282,7 +282,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
 
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" aria-label="Task actions">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -312,7 +312,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                       </DropdownMenu>
                     </div>
 
-                    <div className="flex items-center gap-4 mt-3">
+                    <div className="flex flex-wrap items-center gap-4 mt-3">
                       <div className="flex items-center gap-1">
                         <StatusIcon className="h-4 w-4 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground capitalize">
@@ -345,6 +345,9 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                     </div>
 
                     <div className="mt-3 pt-3 border-t border-border space-y-3">
+                      <div className="sm:max-w-xs">
+                        <Button className="w-full sm:w-auto mb-2" variant="default">Start Timer</Button>
+                      </div>
                       <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
                       <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} />
                       <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />
