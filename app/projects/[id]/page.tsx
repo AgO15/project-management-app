@@ -9,6 +9,7 @@ import { ProjectTimeSummary } from "@/components/project-time-summary"
 import { Button } from "@/components/ui/button"
 import { Plus, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { ProjectActions } from "@/components/project-actions"
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
@@ -70,12 +71,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </Link>
               <ProjectHeader project={project} />
             </div>
+            <div className="flex items-center gap-2">
+              <ProjectActions projectId={id} />
             <CreateTaskDialog projectId={id}>
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 New Task
               </Button>
             </CreateTaskDialog>
+            </div>
           </div>
         </div>
       </header>
