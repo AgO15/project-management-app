@@ -60,7 +60,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 sm:px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/dashboard">
@@ -83,7 +83,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               projectId={id}
               createButton={
                 <CreateTaskDialog projectId={id}>
-                  <Button className="flex items-center gap-2">
+                  <Button className="w-full py-3 text-base flex items-center justify-center gap-2">
                     <Plus className="h-4 w-4" />
                     New Task
                   </Button>

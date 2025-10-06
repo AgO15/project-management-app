@@ -40,21 +40,24 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
   };
 
   return (
-    <div className="p-3 sm:p-4 border-b">
+    <div className="px-3 sm:px-4 py-3 border-b">
       <div className="flex justify-between items-start gap-3 sm:gap-4">
-        <div className="flex items-start gap-3 sm:gap-4 flex-grow">
-          <div
-            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full mt-2 flex-shrink-0"
-            style={{ backgroundColor: project.color }}
-          />
+        <div className="flex items-start gap-2 sm:gap-4 flex-grow">
           <div className="flex-grow">
-            {/* New container for title and badge */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Title */}
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div
+                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full mt-2 flex-shrink-0"
+                style={{ backgroundColor: project.color }}
+              />
               <EditableText
                 as="h1"
                 initialValue={project.name}
                 onSave={handleSaveName}
               />
+            </div>
+            {/* Status below title on mobile */}
+            <div className="mt-2">
               <Badge variant={project.status === "active" ? "default" : "secondary"}>
                 {project.status}
               </Badge>

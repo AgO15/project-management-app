@@ -220,10 +220,11 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
         </div>
       )}
       {/* Filters and Sorting */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
-        <div className="flex gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:gap-4 items-start sm:items-center sm:justify-between">
+        <div className="col-span-2 sm:col-auto hidden sm:block" />
+        <div className="flex gap-3 col-span-1">
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-full sm:w-32 h-11 text-base">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
             <SelectContent>
@@ -235,7 +236,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-full sm:w-36 h-11 text-base">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -246,7 +247,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           </Select>
         </div>
 
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground col-span-2 sm:col-auto">
           {filteredTasks.length} of {tasks.length} tasks
         </div>
       </div>
