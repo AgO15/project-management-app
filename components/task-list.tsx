@@ -31,6 +31,7 @@ interface Task {
 interface TaskListProps {
   tasks: Task[]
   projectId: string
+  createButton?: React.ReactNode
 }
 
 const STATUS_ICONS = {
@@ -45,7 +46,7 @@ const PRIORITY_COLORS = {
   high: "text-red-600",
 }
 
-export function TaskList({ tasks, projectId }: TaskListProps) {
+export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
   const [filter, setFilter] = useState("all")
   const [sortBy, setSortBy] = useState("created_at")
   const router = useRouter()
@@ -212,6 +213,12 @@ export function TaskList({ tasks, projectId }: TaskListProps) {
 
   return (
     <div className="space-y-6">
+      {/* Create button above filters */}
+      {createButton && (
+        <div>
+          {createButton}
+        </div>
+      )}
       {/* Filters and Sorting */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex gap-3">

@@ -9,7 +9,6 @@ import { ProjectTimeSummary } from "@/components/project-time-summary"
 import { Button } from "@/components/ui/button"
 import { Plus, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { ProjectActions } from "@/components/project-actions"
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
@@ -71,15 +70,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </Link>
               <ProjectHeader project={project} />
             </div>
-            <div className="flex items-center gap-2">
-              <ProjectActions projectId={id} />
-            <CreateTaskDialog projectId={id}>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                New Task
-              </Button>
-            </CreateTaskDialog>
-            </div>
+            {/* Actions menu removed per UX request. New Task button moved above filters. */}
           </div>
         </div>
       </header>
@@ -87,7 +78,18 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <TaskList tasks={tasks || []} projectId={id} />
+            <TaskList
+              tasks={tasks || []}
+              projectId={id}
+              createButton={
+                <CreateTaskDialog projectId={id}>
+                  <Button className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    New Task
+                  </Button>
+                </CreateTaskDialog>
+              }
+            />
           </div>
 
           <div className="space-y-6">
