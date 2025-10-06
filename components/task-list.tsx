@@ -257,6 +257,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           const StatusIcon = STATUS_ICONS[task.status as keyof typeof STATUS_ICONS]
           const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "completed"
 
+          const showDueDate = sortBy !== "created_at" // for 'due_date' and 'priority' show due date
           return (
             <Card key={task.id} className="hover:shadow-sm transition-shadow">
               <CardContent className="p-3 sm:p-4">
@@ -328,20 +329,22 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                         {task.priority}
                       </Badge>
 
-                      {task.due_date && (
-                        <div
-                          className={`flex items-center gap-1 text-xs ${isOverdue ? "text-red-600" : "text-muted-foreground"}`}
-                        >
-                          <Calendar className="h-3 w-3" />
-                          {new Date(task.due_date).toLocaleDateString()}
-                          {isOverdue && <span className="font-medium">(Overdue)</span>}
+                      {showDueDate ? (
+                        task.due_date && (
+                          <div
+                            className={`flex items-center gap-1 text-xs ${isOverdue ? "text-red-600" : "text-muted-foreground"}`}
+                          >
+                            <Calendar className="h-3 w-3" />
+                            {new Date(task.due_date).toLocaleDateString()}
+                            {isOverdue && <span className="font-medium">(Overdue)</span>}
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {new Date(task.created_at).toLocaleDateString()}
                         </div>
                       )}
-
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-                        <Clock className="h-3 w-3" />
-                        {new Date(task.created_at).toLocaleDateString()}
-                      </div>
                     </div>
 
                     <div className="mt-3 pt-3 border-t border-border space-y-3">
