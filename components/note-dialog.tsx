@@ -1,4 +1,3 @@
-// components/note-dialog.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,7 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription, // ⬅️ add
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -50,12 +49,10 @@ export function NoteDialog({
   const [content, setContent] = useState(note.content);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  // ✅ prevent hydration mismatch by rendering only after mount
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  // keep local state in sync with incoming prop
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
@@ -77,46 +74,43 @@ export function NoteDialog({
     }
   };
 
-  // --- EDIT VIEW ---
   const EditView = (
-    <>
-      <div className="px-4 pt-4 space-y-2 flex-1 overflow-hidden">
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="px-4 pt-4 space-y-2">
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           placeholder="Note Title"
         />
-        <ScrollArea className="h-full">
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full px-4">
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="min-h-[280px] w-full resize-none border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="min-h-[300px] w-full resize-none border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             placeholder="Write your note here..."
           />
         </ScrollArea>
       </div>
-
-      <div className="px-4 pb-4 flex gap-2 justify-end">
+      <DialogFooter className="px-4 pb-4 flex-row gap-2 justify-end">
         <Button onClick={handleSave}>Save Changes</Button>
         <Button variant="outline" onClick={() => setIsEditing(false)}>
           Cancel
         </Button>
-      </div>
-    </>
+      </DialogFooter>
+    </div>
   );
 
-  // --- READ VIEW ---
   const ReadView = (
-    <>
+    <div className="flex flex-col flex-1 overflow-hidden">
       <DialogHeader className="px-4 pt-4 text-left">
         <DialogTitle>{title || "Untitled Note"}</DialogTitle>
-        {/* ✅ provide a description to satisfy Radix a11y */}
         <DialogDescription className="sr-only">
           Full note content
         </DialogDescription>
       </DialogHeader>
-
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full px-4">
           <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground">
@@ -124,20 +118,18 @@ export function NoteDialog({
           </div>
         </ScrollArea>
       </div>
-
       <DialogFooter className="px-4 pb-4">
         <Button onClick={() => setIsEditing(true)}>Edit</Button>
       </DialogFooter>
-    </>
+    </div>
   );
 
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        {/* ✅ clip & cap height; also set aria-describedby to avoid warnings if header omitted */}
         <DialogContent
-          className="sm:max-w-lg p-0 flex flex-col max-h-[80vh] overflow-hidden"
           aria-describedby={undefined}
+          className="sm:max-w-lg p-0 flex flex-col max-h-[80vh] overflow-hidden"
         >
           {isEditing ? EditView : ReadView}
         </DialogContent>
@@ -147,22 +139,23 @@ export function NoteDialog({
 
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh] overflow-hidden p-0 flex flex-col">
+      <DrawerContent className="max-h-[85vh] overflow-hidden flex flex-col">
         <DrawerHeader className="px-4 pt-4 text-left">
           <DrawerTitle>{isEditing ? "Edit Note" : "Note"}</DrawerTitle>
         </DrawerHeader>
-
         <div className="flex-1 overflow-hidden flex flex-col">
           {isEditing ? (
             <>
-              <div className="px-4 pt-0 space-y-2 flex-1 overflow-hidden">
+              <div className="px-4 pt-0 space-y-2">
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                   placeholder="Note Title"
                 />
-                <ScrollArea className="h-full">
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full px-4">
                   <Textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
