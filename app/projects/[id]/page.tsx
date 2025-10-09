@@ -1,3 +1,5 @@
+// File: app/projects/[id]/page.tsx
+
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { TaskList } from "@/components/task-list"
@@ -35,7 +37,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     redirect("/dashboard")
   }
 
-  // Fetch project tasks
+  // Fetch project tasks, notes, and files (your existing logic is perfect)
   const { data: tasks } = await supabase
     .from("tasks")
     .select("*")
@@ -70,7 +72,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </Link>
               <ProjectHeader project={project} />
             </div>
-            {/* Actions menu removed per UX request. New Task button moved above filters. */}
+
+            {/* --- SOLUTION: The "New Task" button is now here! --- */}
+            {/* It's always visible in the header, regardless of how many tasks exist. */}
+            <CreateTaskDialog projectId={id}>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Task
+              </Button>
+            </CreateTaskDialog>
+            {/* -------------------------------------------------------- */}
+            
           </div>
         </div>
       </header>
@@ -78,25 +90,19 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
+            
+            {/* --- CHANGE: The TaskList component no longer needs the createButton prop --- */}
             <TaskList
               tasks={tasks || []}
               projectId={id}
-              createButton={
-                <CreateTaskDialog projectId={id}>
-                  <Button className="w-full py-3 text-base flex items-center justify-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    New Task
-                  </Button>
-                </CreateTaskDialog>
-              }
             />
+            {/* ----------------------------------------------------------------------------- */}
+
           </div>
 
           <div className="space-y-6">
             <ProjectTimeSummary projectId={id} />
-
             <ProjectNotes projectId={id} notes={projectNotes || []} />
-
             <FileUpload projectId={id} files={projectFiles || []} title="Project Files" />
           </div>
         </div>
