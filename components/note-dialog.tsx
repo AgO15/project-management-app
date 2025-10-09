@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { updateNoteDetails } from "@/app/actions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -39,6 +38,11 @@ interface NoteDialogProps {
   onNoteUpdated: (updatedNote: Note) => void;
 }
 
+/**
+ * IMPORTANT:
+ * - We "latch" whether to use Dialog or Drawer once on mount to avoid
+ *   Drawer<->Dialog switching, which causes hydration errors (#425/#423).
+ */
 export function NoteDialog({
   note,
   isOpen,
@@ -48,14 +52,18 @@ export function NoteDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.content);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  // Prevent hydration mismatch
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+  // Latch variant on mount; never switch during this component's lifetime.
+  const [variant, setVariant] = useState<"dialog" | "drawer" | null>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const prefersDialog = window.matchMedia("(min-width: 768px)").matches;
+      setVariant(prefersDialog ? "dialog" : "drawer");
+    }
+  }, []);
+  if (variant === null) return null; // avoid SSR/CSR mismatch entirely
 
-  // Sync when note prop changes
+  // Keep local state in sync when the note prop changes
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
@@ -101,26 +109,29 @@ export function NoteDialog({
         </ScrollArea>
       </div>
 
-      <DialogFooter className="px-4 pb-4 flex-row gap-2 justify-end">
+      <div className="px-4 pb-4 flex gap-2 justify-end">
         <Button onClick={handleSave}>Save Changes</Button>
         <Button variant="outline" onClick={() => setIsEditing(false)}>
           Cancel
         </Button>
-      </DialogFooter>
+      </div>
     </div>
   );
 
   // --- READ VIEW ---
   const ReadView = (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <DialogHeader className="px-4 pt-4 text-left">
-        <DialogTitle>{title || "Untitled Note"}</DialogTitle>
-        <DialogDescription className="sr-only">
-          Full note content
-        </DialogDescription>
-      </DialogHeader>
+      {/* Header */}
+      <div className="px-4 pt-4 text-left">
+        {/* DialogHeader adds extra wrappers; a simple div is enough for Drawer/Dialog */}
+        <DialogTitle className="text-base font-semibold">
+          {title || "Untitled Note"}
+        </DialogTitle>
+        {/* Provide a description for a11y if used inside Dialog */}
+        <DialogDescription className="sr-only">Full note content</DialogDescription>
+      </div>
 
-      {/* ✅ Critical: min-h-0 + explicit max height so ScrollArea activates immediately */}
+      {/* Critical: min-h-0 + explicit height so ScrollArea activates immediately */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="max-h-[60vh] px-4">
           <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground">
@@ -129,13 +140,13 @@ export function NoteDialog({
         </ScrollArea>
       </div>
 
-      <DialogFooter className="px-4 pb-4">
+      <div className="px-4 pb-4">
         <Button onClick={() => setIsEditing(true)}>Edit</Button>
-      </DialogFooter>
+      </div>
     </div>
   );
 
-  if (isDesktop) {
+  if (variant === "dialog") {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent
@@ -148,7 +159,7 @@ export function NoteDialog({
     );
   }
 
-  // --- MOBILE (Drawer) ---
+  // Mobile drawer (latched)
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh] overflow-hidden flex flex-col p-0">
@@ -190,7 +201,6 @@ export function NoteDialog({
             </>
           ) : (
             <>
-              {/* Same min-h-0 trick on mobile */}
               <div className="flex-1 min-h-0 overflow-hidden">
                 <ScrollArea className="max-h-[70vh] px-4">
                   <div className="py-2">
