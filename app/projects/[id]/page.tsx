@@ -1,4 +1,4 @@
-// File: app/projects/[id]/page.tsx
+// Archivo: app/projects/[id]/page.tsx
 
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
@@ -25,7 +25,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     redirect("/auth/login")
   }
 
-  // Fetch project details
+  // Tu lógica para obtener datos de la base de datos (sin cambios)
   const { data: project } = await supabase
     .from("projects")
     .select("*")
@@ -37,7 +37,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     redirect("/dashboard")
   }
 
-  // Fetch project tasks, notes, and files (your existing logic is perfect)
   const { data: tasks } = await supabase
     .from("tasks")
     .select("*")
@@ -72,32 +71,30 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </Link>
               <ProjectHeader project={project} />
             </div>
-
-            {/* --- SOLUTION: The "New Task" button is now here! --- */}
-            {/* It's always visible in the header, regardless of how many tasks exist. */}
-            <CreateTaskDialog projectId={id}>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Task
-              </Button>
-            </CreateTaskDialog>
-            {/* -------------------------------------------------------- */}
-            
+            {/* --- CAMBIO 1: El botón "New Task" se ha quitado de aquí --- */}
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4"> {/* Reducido el espacio para un mejor ajuste */}
             
-            {/* --- CHANGE: The TaskList component no longer needs the createButton prop --- */}
+            {/* --- CAMBIO 2: El botón "New Task" ahora está aquí --- */}
+            <CreateTaskDialog projectId={id}>
+              {/* La clase "w-full" lo hace extenderse de extremo a extremo */}
+              <Button className="w-full py-3 text-base flex items-center justify-center gap-2">
+                <Plus className="h-4 w-4" />
+                New Task
+              </Button>
+            </CreateTaskDialog>
+            {/* -------------------------------------------------------- */}
+
             <TaskList
               tasks={tasks || []}
               projectId={id}
             />
-            {/* ----------------------------------------------------------------------------- */}
-
+            
           </div>
 
           <div className="space-y-6">
