@@ -47,6 +47,8 @@ export function NoteDialog({ note, isOpen, onOpenChange, onNoteUpdated }: NoteDi
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
+    // Reset edit mode when a new note is selected
+    setIsEditing(false);
   }, [note]);
 
   const handleSave = async () => {

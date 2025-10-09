@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -37,6 +37,13 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(note.content);
   const isDesktop = useMediaQuery("(min-width: 768px)");
+  
+  useEffect(() => {
+    setEditContent(note.content);
+    // Reset edit mode when a new note is selected
+    setIsEditing(false);
+  }, [note]);
+
 
   const handleSave = async () => {
     await onUpdateNote(note.id, editContent);
@@ -55,7 +62,6 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
       </DialogHeader>
       
       <ScrollArea className="px-4 flex-grow">
-        {/* --- CORRECCIÓN: Se cambió DialogDescription por un div --- */}
         <div className="py-4">
           {isEditing ? (
             <Textarea
@@ -68,7 +74,6 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
             <p className="whitespace-pre-wrap text-foreground">{note.content}</p>
           )}
         </div>
-        {/* --------------------------------------------------------- */}
       </ScrollArea>
       
       <DialogFooter className="px-4 pb-4 flex-row justify-end gap-2 flex-shrink-0">
