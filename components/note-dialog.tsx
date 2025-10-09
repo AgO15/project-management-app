@@ -1,3 +1,4 @@
+// components/note-dialog.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -49,10 +50,12 @@ export function NoteDialog({
   const [content, setContent] = useState(note.content);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
+  // Prevent hydration mismatch
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
+  // Sync when note prop changes
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
@@ -74,6 +77,7 @@ export function NoteDialog({
     }
   };
 
+  // --- EDIT VIEW ---
   const EditView = (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="px-4 pt-4 space-y-2">
@@ -84,7 +88,9 @@ export function NoteDialog({
           placeholder="Note Title"
         />
       </div>
-      <div className="flex-1 overflow-hidden">
+
+      {/* Scrollable area needs a flex parent + min-h-0 */}
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full px-4">
           <Textarea
             value={content}
@@ -94,6 +100,7 @@ export function NoteDialog({
           />
         </ScrollArea>
       </div>
+
       <DialogFooter className="px-4 pb-4 flex-row gap-2 justify-end">
         <Button onClick={handleSave}>Save Changes</Button>
         <Button variant="outline" onClick={() => setIsEditing(false)}>
@@ -103,6 +110,7 @@ export function NoteDialog({
     </div>
   );
 
+  // --- READ VIEW ---
   const ReadView = (
     <div className="flex flex-col flex-1 overflow-hidden">
       <DialogHeader className="px-4 pt-4 text-left">
@@ -111,13 +119,16 @@ export function NoteDialog({
           Full note content
         </DialogDescription>
       </DialogHeader>
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full px-4">
+
+      {/* ✅ Critical: min-h-0 + explicit max height so ScrollArea activates immediately */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="max-h-[60vh] px-4">
           <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground">
             {content}
           </div>
         </ScrollArea>
       </div>
+
       <DialogFooter className="px-4 pb-4">
         <Button onClick={() => setIsEditing(true)}>Edit</Button>
       </DialogFooter>
@@ -137,12 +148,14 @@ export function NoteDialog({
     );
   }
 
+  // --- MOBILE (Drawer) ---
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh] overflow-hidden flex flex-col">
+      <DrawerContent className="max-h-[85vh] overflow-hidden flex flex-col p-0">
         <DrawerHeader className="px-4 pt-4 text-left">
           <DrawerTitle>{isEditing ? "Edit Note" : "Note"}</DrawerTitle>
         </DrawerHeader>
+
         <div className="flex-1 overflow-hidden flex flex-col">
           {isEditing ? (
             <>
@@ -154,16 +167,18 @@ export function NoteDialog({
                   placeholder="Note Title"
                 />
               </div>
-              <div className="flex-1 overflow-hidden">
+
+              <div className="flex-1 min-h-0 overflow-hidden">
                 <ScrollArea className="h-full px-4">
                   <Textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    className="min-h-[200px] w-full resize-none border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="min-h-[220px] w-full resize-none border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                     placeholder="Write your note here..."
                   />
                 </ScrollArea>
               </div>
+
               <DrawerFooter className="px-4 pb-4">
                 <div className="flex gap-2 justify-end w-full">
                   <Button onClick={handleSave}>Save Changes</Button>
@@ -175,8 +190,9 @@ export function NoteDialog({
             </>
           ) : (
             <>
-              <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full px-4">
+              {/* Same min-h-0 trick on mobile */}
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <ScrollArea className="max-h-[70vh] px-4">
                   <div className="py-2">
                     <h3 className="sr-only">{title || "Untitled Note"}</h3>
                     <div className="whitespace-pre-wrap text-sm text-muted-foreground">
@@ -185,6 +201,7 @@ export function NoteDialog({
                   </div>
                 </ScrollArea>
               </div>
+
               <DrawerFooter className="px-4 pb-4">
                 <div className="flex gap-2 justify-end w-full">
                   <Button onClick={() => setIsEditing(true)}>Edit</Button>
