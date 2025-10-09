@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
@@ -18,12 +17,10 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
   DrawerFooter,
-  DrawerClose,
 } from "@/components/ui/drawer";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Define la estructura de una nota que el diálogo espera recibir
 interface Note {
   id: string;
   content: string;
@@ -43,45 +40,50 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
 
   const handleSave = async () => {
     await onUpdateNote(note.id, editContent);
-    setIsEditing(false); // Vuelve al modo de vista después de guardar
-  };
-
-  const handleCancel = () => {
-    setEditContent(note.content); // Resetea cualquier cambio no guardado
     setIsEditing(false);
   };
 
-  // Contenido dinámico para el diálogo/drawer
+  const handleCancel = () => {
+    setEditContent(note.content);
+    setIsEditing(false);
+  };
+
   const DialogContentArea = (
     <>
-      <DialogHeader className="p-4 text-left">
-        <DialogTitle>{isEditing ? "Editar Nota" : "Nota Completa"}</DialogTitle>
-        <DialogDescription className="pt-4">
+      <DialogHeader className="p-4 text-left flex-shrink-0">
+        <DialogTitle>{isEditing ? "Edit Note" : "Full Note"}</DialogTitle>
+      </DialogHeader>
+      
+      <ScrollArea className="px-4 flex-grow">
+        {/* --- CORRECCIÓN: Se cambió DialogDescription por un div --- */}
+        <div className="py-4">
           {isEditing ? (
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[200px] whitespace-pre-wrap"
+              className="min-h-[200px] w-full resize-none border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 whitespace-pre-wrap"
               autoFocus
             />
           ) : (
             <p className="whitespace-pre-wrap text-foreground">{note.content}</p>
           )}
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter className="px-4 pb-4 flex-row justify-end gap-2">
+        </div>
+        {/* --------------------------------------------------------- */}
+      </ScrollArea>
+      
+      <DialogFooter className="px-4 pb-4 flex-row justify-end gap-2 flex-shrink-0">
         {isEditing ? (
           <>
-            <Button onClick={handleSave}>Guardar Cambios</Button>
+            <Button onClick={handleSave}>Save Changes</Button>
             <Button variant="outline" onClick={handleCancel}>
-              Cancelar
+              Cancel
             </Button>
           </>
         ) : (
           <>
-            <Button onClick={() => setIsEditing(true)}>Editar</Button>
+            <Button onClick={() => setIsEditing(true)}>Edit</Button>
             <DialogClose asChild>
-              <Button variant="outline">Cerrar</Button>
+              <Button variant="outline">Close</Button>
             </DialogClose>
           </>
         )}
@@ -92,14 +94,20 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">{DialogContentArea}</DialogContent>
+        <DialogContent className="sm:max-w-md p-0 flex flex-col h-[70vh]">
+            {DialogContentArea}
+        </DialogContent>
       </Dialog>
     );
   }
 
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent>{DialogContentArea}</DrawerContent>
+      <DrawerContent>
+        <div className="h-[80vh] flex flex-col">
+            {DialogContentArea}
+        </div>
+      </DrawerContent>
     </Drawer>
   );
 }

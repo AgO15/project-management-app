@@ -22,7 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { updateNoteDetails } from "@/app/actions";
-// --- 1. Importa el componente ScrollArea ---
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Note {
@@ -45,7 +44,6 @@ export function NoteDialog({ note, isOpen, onOpenChange, onNoteUpdated }: NoteDi
   const [content, setContent] = useState(note.content);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
-  // Sincroniza el estado si la nota que se pasa como prop cambia
   useEffect(() => {
     setTitle(note.title);
     setContent(note.content);
@@ -62,27 +60,25 @@ export function NoteDialog({ note, isOpen, onOpenChange, onNoteUpdated }: NoteDi
     }
   };
 
-  // --- VISTA DE EDICIÓN ---
   const EditView = (
     <>
-      <div className="px-4 pt-4 space-y-2">
+      <DialogHeader className="px-4 pt-4 text-left flex-shrink-0">
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="text-lg font-semibold border-0 px-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
           placeholder="Note Title"
         />
-        {/* 2. Envuelve el Textarea en un ScrollArea para notas largas */}
-        <ScrollArea className="h-72">
-           <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="h-full min-h-[280px] w-full resize-none border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-            placeholder="Write your note here..."
-          />
-        </ScrollArea>
-      </div>
-      <DrawerFooter className="pt-2 flex-row gap-2">
+      </DialogHeader>
+      <ScrollArea className="px-4 flex-grow">
+         <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="h-full min-h-[250px] w-full resize-none border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+          placeholder="Write your note here..."
+        />
+      </ScrollArea>
+      <DrawerFooter className="pt-2 flex-row gap-2 flex-shrink-0">
         <Button onClick={handleSave}>Save Changes</Button>
         <DrawerClose asChild>
           <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
@@ -91,29 +87,29 @@ export function NoteDialog({ note, isOpen, onOpenChange, onNoteUpdated }: NoteDi
     </>
   );
 
-  // --- VISTA DE LECTURA ---
   const ReadView = (
     <>
-      <DialogHeader className="px-4 pt-4 text-left">
+      <DialogHeader className="px-4 pt-4 text-left flex-shrink-0">
         <DialogTitle>{title || "Untitled Note"}</DialogTitle>
       </DialogHeader>
-      {/* 3. Envuelve el contenido en un ScrollArea para hacerlo desplazable */}
-      <ScrollArea className="max-h-[60vh] px-4">
+      <ScrollArea className="px-4 flex-grow">
         <div className="py-4 whitespace-pre-wrap text-sm text-muted-foreground">
           {content}
         </div>
       </ScrollArea>
-      <DialogFooter className="px-4 pb-4">
+      <DialogFooter className="px-4 pb-4 flex-shrink-0">
         <Button onClick={() => setIsEditing(true)}>Edit</Button>
       </DialogFooter>
     </>
   );
 
+  const contentToRender = isEditing ? EditView : ReadView;
+
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg p-0 flex flex-col max-h-[80vh]">
-          {isEditing ? EditView : ReadView}
+        <DialogContent className="sm:max-w-lg p-0 flex flex-col h-[70vh]">
+          {contentToRender}
         </DialogContent>
       </Dialog>
     );
@@ -122,9 +118,8 @@ export function NoteDialog({ note, isOpen, onOpenChange, onNoteUpdated }: NoteDi
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerContent>
-        {/* Usamos un div para limitar la altura en móvil también */}
-        <div className="max-h-[80vh] flex flex-col">
-            {isEditing ? EditView : ReadView}
+        <div className="h-[80vh] flex flex-col">
+            {contentToRender}
         </div>
       </DrawerContent>
     </Drawer>
