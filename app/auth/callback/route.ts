@@ -20,12 +20,16 @@ export async function GET(request: Request) {
         },
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    if (!error && data.session) {
+      // Check if this is a password recovery session
       const redirectTarget = new URL(next, origin)
       return NextResponse.redirect(redirectTarget)
     }
   }
 
+  // If there's an error or no code, redirect to error page
   return NextResponse.redirect(`${origin}/auth/error`)
 }

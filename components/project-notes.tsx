@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Save, X, StickyNote } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { NoteDialog } from "@/components/note-dialog";
+import { TaskNoteDialog } from "@/components/TaskNoteDialog";
 
 interface Note {
   id: string;
@@ -41,11 +41,67 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
   const { toast } = useToast();
 
   const createNote = async () => {
-    // ... createNote function remains the same as your original code
+    if (!newNoteContent.trim()) return;
+
+    setLoading(true);
+    const supabase = createClient();
+    try {
+      const { data, error } = await supabase
+        .from("notes")
+        .insert({
+          content: newNoteContent.trim(),
+          project_id: projectId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setNotes([data, ...notes]);
+      setNewNoteContent("");
+      setIsCreating(false);
+
+      toast({
+        title: "Note created",
+        description: "Your note has been created successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create note. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const deleteNote = async (noteId: string) => {
-    // ... deleteNote function remains the same as your original code
+    setLoading(true);
+    const supabase = createClient();
+    try {
+      const { error } = await supabase
+        .from("notes")
+        .delete()
+        .eq("id", noteId);
+
+      if (error) throw error;
+
+      setNotes(notes.filter(note => note.id !== noteId));
+
+      toast({
+        title: "Note deleted",
+        description: "Your note has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete note. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateNote = async (noteId: string, newContent: string) => {
@@ -102,18 +158,57 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
             )}
         </div>
 
-        {/* Create new note form remains the same */}
+        {/* Create new note form */}
         {isCreating && (
-             <Card>
-                {/* ... your existing "create new note" JSX ... */}
-             </Card>
+          <Card>
+            <CardContent className="p-4">
+              <Textarea
+                value={newNoteContent}
+                onChange={(e) => setNewNoteContent(e.target.value)}
+                placeholder="Write your note here..."
+                className="min-h-[100px] mb-3"
+                autoFocus
+              />
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  onClick={createNote} 
+                  disabled={loading || !newNoteContent.trim()}
+                  size="sm"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {loading ? "Creating..." : "Save Note"}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsCreating(false);
+                    setNewNoteContent("");
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
         
-        {/* Existing notes list - UPDATED */}
+        {/* Existing notes list */}
         {notes.length === 0 && !isCreating ? (
-           <Card>
-             {/* ... your existing "No notes yet" JSX ... */}
-           </Card>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <StickyNote className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No notes yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get started by adding your first project note.
+              </p>
+              <Button onClick={() => setIsCreating(true)} variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Note
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-3">
             {notes.map((note) => {
@@ -151,7 +246,7 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
 
       {/* Render the Dialog when a note is selected */}
       {selectedNote && (
-        <NoteDialog
+        <TaskNoteDialog
           note={selectedNote}
           isOpen={!!selectedNote}
           onOpenChange={(isOpen) => !isOpen && setSelectedNote(null)}
