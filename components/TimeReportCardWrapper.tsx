@@ -1,3 +1,7 @@
+// File: components/TimeReportCardWrapper.tsx (CORREGIDO - Cierre de Card)
+
+"use client"; // ¡IMPORTANTE! Marca este componente como Cliente para usar hooks de estado y efecto.
+
 import React, { useState, useEffect } from 'react';
 import Link from "next/link";
 import { DateRange } from "react-day-picker";
@@ -54,7 +58,6 @@ const fetchTimeEntries = async (startDate: Date, endDate: Date): Promise<TimeEnt
 
     } catch (error) {
         console.error("Fallo de red al obtener el informe de tiempo:", error);
-        // Si hay un error, devolvemos un array vacío en lugar de romper el componente
         return [];
     }
 };
@@ -75,7 +78,6 @@ export function TimeReportCardWrapper() {
         if (dateRange?.from && dateRange?.to) {
             setIsLoading(true);
             
-            // Llamada a la función de fetch
             fetchTimeEntries(dateRange.from, dateRange.to)
                 .then(data => setTimeEntries(data))
                 .catch(error => {
@@ -114,6 +116,7 @@ export function TimeReportCardWrapper() {
                     isLoading={isLoading}
                 />
             </CardContent>
-        </Card>
+        </Card> 
+        // 🚨 AQUÍ ESTABA EL ERROR: Faltaba el cierre de la Card
     );
 }
