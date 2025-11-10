@@ -20,6 +20,7 @@ interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function DateRangePicker({ className, date, setDate }: DateRangePickerProps) {
   return (
+    // 🚨 CAMBIO 1: El div principal usa 'className' para aplicar el ancho responsive (w-full sm:w-[240px])
     <div className={cn("grid gap-2", className)}>
       <Popover>
         <PopoverTrigger asChild>
@@ -27,7 +28,8 @@ export function DateRangePicker({ className, date, setDate }: DateRangePickerPro
             id="date"
             variant={"outline"}
             className={cn(
-              "w-[240px] justify-start text-left font-normal",
+              // 🚨 CAMBIO 2: Eliminamos 'w-[240px]' de aquí. El ancho se controla ahora desde el prop 'className'.
+              "justify-start text-left font-normal",
               !date && "text-muted-foreground"
             )}
           >

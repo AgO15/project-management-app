@@ -95,14 +95,29 @@ export function TimeReportCardWrapper() {
 
     return (
         <Card className="hover:bg-muted/50 transition-colors">
-            <CardHeader className="flex flex-row items-center justify-between space-x-4">
+           <CardHeader 
+                className="
+                    flex 
+                    flex-col sm:flex-row       /* Cambia de columna (móvil) a fila (sm+) */
+                    items-start sm:justify-between /* Alinea a la izquierda en móvil, justifica espacio en sm+ */
+                    space-y-3 sm:space-y-0    /* Añade espacio vertical en móvil, lo quita en sm+ */
+                    sm:space-x-4
+                "
+            >
+                {/* Título */}
                 <CardTitle>{reportTitle}</CardTitle>
+                
+                {/* Contenedor del Selector de Fechas y Reloj */}
                 <div className="flex items-center space-x-2">
-                    {/* Selector de fechas */}
+                    
+                    {/* El selector de fechas debe ser responsive */}
                     <DateRangePicker 
                         date={dateRange} 
                         setDate={setDateRange} 
+                        // 💡 PASAMOS CLASES RESPONSIVE AL DateRangePicker
+                        className="w-full sm:w-[240px]"
                     />
+                    
                     <Link href="/dashboard/reports" className="text-muted-foreground hover:text-primary">
                         <Clock className="h-5 w-5" />
                     </Link>
@@ -116,7 +131,7 @@ export function TimeReportCardWrapper() {
                     isLoading={isLoading}
                 />
             </CardContent>
-        </Card> 
-        // 🚨 AQUÍ ESTABA EL ERROR: Faltaba el cierre de la Card
+        </Card>
+        
     );
 }
