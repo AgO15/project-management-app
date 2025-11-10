@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -80,61 +81,63 @@ export function CreateProjectDialog({ children }: CreateProjectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md sm:max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Create New Project</DialogTitle>
           <DialogDescription>Add a new project to organize your tasks and track progress.</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Project Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter project name"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your project"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Project Color</Label>
-            <div className="flex gap-2">
-              {PROJECT_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  className={`w-8 h-8 rounded-full border-2 ${
-                    selectedColor === color ? "border-foreground" : "border-transparent"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setSelectedColor(color)}
-                />
-              ))}
+        <ScrollArea className="flex-1 px-1">
+          <form onSubmit={handleSubmit} className="space-y-4 pr-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Project Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter project name"
+                required
+              />
             </div>
-          </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? "Creating..." : "Create Project"}
-            </Button>
-          </div>
-        </form>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe your project"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Project Color</Label>
+              <div className="flex gap-2">
+                {PROJECT_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      selectedColor === color ? "border-foreground" : "border-transparent"
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setSelectedColor(color)}
+                  />
+                ))}
+              </div>
+            </div>
+          </form>
+        </ScrollArea>
+
+        <div className="flex gap-3 pt-4 flex-shrink-0">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading} className="flex-1" onClick={handleSubmit}>
+            {loading ? "Creating..." : "Create Project"}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )

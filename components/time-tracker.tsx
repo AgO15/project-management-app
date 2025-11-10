@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface TimeEntry {
   id: string
@@ -359,44 +360,46 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
                     Add Time
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
+                <DialogContent className="sm:max-w-md sm:max-h-[90vh] flex flex-col overflow-hidden">
+                  <DialogHeader className="flex-shrink-0">
                     <DialogTitle>Add Manual Time Entry</DialogTitle>
                     <DialogDescription>Add time that was spent on this task but not tracked.</DialogDescription>
                   </DialogHeader>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="manual-description">Description (Optional)</Label>
-                      <Textarea
-                        id="manual-description"
-                        value={manualDescription}
-                        onChange={(e) => setManualDescription(e.target.value)}
-                        placeholder="What did you work on?"
-                        rows={2}
-                      />
-                    </div>
+                  <ScrollArea className="flex-1 px-1">
+                    <div className="space-y-4 pr-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="manual-description">Description (Optional)</Label>
+                        <Textarea
+                          id="manual-description"
+                          value={manualDescription}
+                          onChange={(e) => setManualDescription(e.target.value)}
+                          placeholder="What did you work on?"
+                          rows={2}
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="manual-duration">Duration (minutes)</Label>
-                      <Input
-                        id="manual-duration"
-                        type="number"
-                        value={manualDuration}
-                        onChange={(e) => setManualDuration(e.target.value)}
-                        placeholder="60"
-                        min="1"
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="manual-duration">Duration (minutes)</Label>
+                        <Input
+                          id="manual-duration"
+                          type="number"
+                          value={manualDuration}
+                          onChange={(e) => setManualDuration(e.target.value)}
+                          placeholder="60"
+                          min="1"
+                        />
+                      </div>
                     </div>
+                  </ScrollArea>
 
-                    <div className="flex gap-3">
-                      <Button onClick={() => setShowManualEntry(false)} variant="outline" className="flex-1">
-                        Cancel
-                      </Button>
-                      <Button onClick={addManualEntry} disabled={loading || !manualDuration.trim()} className="flex-1">
-                        Add Entry
-                      </Button>
-                    </div>
+                  <div className="flex gap-3 flex-shrink-0 pt-4">
+                    <Button onClick={() => setShowManualEntry(false)} variant="outline" className="flex-1">
+                      Cancel
+                    </Button>
+                    <Button onClick={addManualEntry} disabled={loading || !manualDuration.trim()} className="flex-1">
+                      Add Entry
+                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>
