@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, LogOut } from "lucide-react"
 
 // --- 1. Import the new TimeReportCard component ---
-import { TimeReportCard } from "@/components/TimeReportCard";
+import { TimeReportCardWrapper } from "@/components/TimeReportCardWrapper";
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -70,7 +70,7 @@ export default async function DashboardPage() {
 
         {/* --- 3. Add the TimeReportCard component to the page --- */}
         <div className="mb-8">
-          <TimeReportCard timeEntries={timeEntries || []} />
+          <TimeReportCardWrapper/>
         </div>
 
         <div className="mb-8">
