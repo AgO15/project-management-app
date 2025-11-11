@@ -1,6 +1,6 @@
-// File: components/TimeReportCardWrapper.tsx (CORREGIDO - Cierre de Card)
+// File: components/TimeReportCardWrapper.tsx
 
-"use client"; // ¡IMPORTANTE! Marca este componente como Cliente para usar hooks de estado y efecto.
+"use client"; // 🚨 ¡IMPORTANTE! Necesario para usar hooks y estado.
 
 import React, { useState, useEffect } from 'react';
 import Link from "next/link";
@@ -8,27 +8,28 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { Clock } from "lucide-react";
 
+// Importa tu función para inicializar el cliente de Supabase del LADO DEL CLIENTE
+import { createClient } from '@/lib/supabase/client'; // 
 // Importa tus componentes
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker"; 
 import { TimeReportCard } from "@/components/TimeReportCard"; 
-import { TimeEntry } from "@/lib/types"; // Asegúrate que esta ruta es correcta
+import { TimeEntry } from "@/lib/types"; 
 
 
-// ⚠️ FUNCIÓN DE TOKEN: Debes adaptar esto a tu sistema de autenticación real
-const getAuthToken = (): string | null => {
-    // Reemplaza esto con tu lógica para obtener el token JWT del usuario logueado
-    return localStorage.getItem('mi_token_jwt'); 
-};
-
-
-// --- Función de Fetch de Datos (Implementación con Autenticación Segura) ---
+// --- Función de Fetch de Datos (Implementación con Supabase) ---
 const fetchTimeEntries = async (startDate: Date, endDate: Date): Promise<TimeEntry[]> => {
     
-    const authToken = getAuthToken();
+    // 1. Inicializa el cliente de Supabase (del lado del cliente)
+    const supabase = createClient();
+    
+    // 2. Obtener la sesión (esto es asíncrono y maneja el almacenamiento de tokens)
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const authToken = session?.access_token; // Este es el JWT que necesita el backend
 
     if (!authToken) {
-        console.warn("ADVERTENCIA: Usuario no autenticado. Devolviendo datos vacíos.");
+        console.warn("ADVERTENCIA: Usuario no autenticado (Supabase). Devolviendo datos vacíos.");
         return []; 
     }
 
@@ -43,13 +44,15 @@ const fetchTimeEntries = async (startDate: Date, endDate: Date): Promise<TimeEnt
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                // Envío del token JWT para autenticar al usuario
+                // 3. Envío del token JWT de Supabase
                 'Authorization': `Bearer ${authToken}`, 
             },
         });
 
         if (!response.ok) {
             console.error(`Error ${response.status} al obtener datos:`, response.statusText);
+            
+            // Si el token falló, Supabase lo manejará, pero aquí podemos logear el error del API
             throw new Error(`Error ${response.status}: No se pudieron cargar las entradas.`);
         }
 
@@ -95,29 +98,15 @@ export function TimeReportCardWrapper() {
 
     return (
         <Card className="hover:bg-muted/50 transition-colors">
-           <CardHeader 
-                className="
-                    flex 
-                    flex-col sm:flex-row       /* Cambia de columna (móvil) a fila (sm+) */
-                    items-start sm:justify-between /* Alinea a la izquierda en móvil, justifica espacio en sm+ */
-                    space-y-3 sm:space-y-0    /* Añade espacio vertical en móvil, lo quita en sm+ */
-                    sm:space-x-4
-                "
-            >
-                {/* Título */}
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:justify-between space-y-3 sm:space-y-0 sm:space-x-4">
                 <CardTitle>{reportTitle}</CardTitle>
-                
-                {/* Contenedor del Selector de Fechas y Reloj */}
                 <div className="flex items-center space-x-2">
-                    
-                    {/* El selector de fechas debe ser responsive */}
+                    {/* Selector de fechas */}
                     <DateRangePicker 
                         date={dateRange} 
                         setDate={setDateRange} 
-                        // 💡 PASAMOS CLASES RESPONSIVE AL DateRangePicker
                         className="w-full sm:w-[240px]"
                     />
-                    
                     <Link href="/dashboard/reports" className="text-muted-foreground hover:text-primary">
                         <Clock className="h-5 w-5" />
                     </Link>
@@ -132,6 +121,5 @@ export function TimeReportCardWrapper() {
                 />
             </CardContent>
         </Card>
-        
     );
 }
