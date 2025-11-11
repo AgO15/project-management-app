@@ -1,29 +1,52 @@
+// File: app/api/time-entries/route.ts (CORREGIDO)
+
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
-export async function GET(request: Request) {
-    // 1. Inicializa el cliente de Supabase para la ruta de la API (Server Side)
-    const supabase = createRouteHandlerClient({ cookies });
-    
-    // 2. Obtener la sesión actual. Este es el método más recomendado.
-    const { 
-        data: { session },
-        error: sessionError 
-    } = await supabase.auth.getSession();
+// 1. Importar el helper correcto: createServerClient de @supabase/ssr
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
-    if (sessionError || !session) {
-        // Devolver 401 si no hay sesión válida o hubo un error al obtenerla.
-        console.error("GET /api/time-entries: Error 401. No se pudo obtener la sesión o es inválida.");
-        return new NextResponse(JSON.stringify({ error: 'Unauthorized: User not authenticated' }), {
+export async function GET(request: Request) {
+    
+    // 2. Crear el almacén de cookies de Next.js
+    const cookieStore = cookies();
+
+    // 3. Crear el cliente de Supabase para el lado del servidor (API Route)
+    //    usando el patrón de @supabase/ssr
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name: string) {
+                    return cookieStore.get(name)?.value;
+                },
+                // NOTA: set y remove no son necesarios para un GET,
+                // pero se incluyen aquí si expandes la API (POST, PUT, etc.)
+                set(name: string, value: string, options: CookieOptions) {
+                    cookieStore.set({ name, value, ...options });
+                },
+                remove(name: string, options: CookieOptions) {
+                    cookieStore.set({ name, value: '', ...options });
+                },
+            },
+        }
+    );
+
+    // 4. Obtener el usuario (esto ahora SÍ funcionará)
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        // Si no hay usuario, devolver error 401
+        return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,
             headers: { 'Content-Type': 'application/json' },
         });
     }
 
-    const userId = session.user.id;
-
-    // 3. Obtener los parámetros de fecha de la URL
+    // 5. Obtener los parámetros de fecha de la URL
     const url = new URL(request.url);
     const startDate = url.searchParams.get('startDate');
     const endDate = url.searchParams.get('endDate');
@@ -32,27 +55,24 @@ export async function GET(request: Request) {
         return new NextResponse(JSON.stringify({ error: 'Missing date parameters' }), { status: 400 });
     }
 
-    // 4. Lógica de consulta a Supabase
+    // 6. Lógica de consulta a Supabase (sin cambios)
     try {
-        // Aseguramos que la consulta use los campos que definimos para el reporte
         const { data, error } = await supabase
-            .from('time_entries') 
-            .select('id, description, duration_minutes, created_at')
-            .eq('user_id', userId) 
-            .gte('created_at', startDate) // Filtrar por fecha de inicio (>=)
-            .lte('created_at', endDate)   // Filtrar por fecha de fin (<=)
-            .order('created_at', { ascending: false }); // Ordenar por fecha
+            .from('time_entries') // REEMPLAZA 'time_entries' por el nombre real de tu tabla
+            .select('*, tasks(title)') // 🚨 MODIFICACIÓN: Hacemos join con 'tasks' para obtener el 'title'
+            .eq('user_id', user.id) // Filtrar por el ID del usuario autenticado
+            .gte('start_time', startDate)
+            .lte('end_time', endDate); // Asegúrate que la columna se llama 'end_time' o 'start_time'
 
         if (error) {
             console.error('Supabase Query Error:', error);
             throw new Error(error.message);
         }
 
-        // 5. Devolver las entradas de tiempo
+        // 7. Devolver las entradas de tiempo
         return NextResponse.json(data);
 
     } catch (error) {
-        // Manejo de errores internos (ej. fallo de conexión DB)
         console.error('API Error:', error);
         return new NextResponse(JSON.stringify({ error: 'Failed to fetch time entries' }), {
             status: 500,
