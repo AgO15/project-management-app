@@ -66,7 +66,7 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
   const Body = (
     <div className="flex-1 overflow-hidden min-h-0">
       <ScrollArea className="h-full w-full">
-        <div className="px-4 py-4">
+        <div className="px-6 py-4"> {/* Ajustado padding */}
           {isEditing ? (
             <Textarea
               value={editContent}
@@ -85,19 +85,19 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
   );
 
   const Footer = (
-    <div className="px-4 pb-4 pt-2">
+    <div className="flex justify-end gap-2 p-4"> {/* Ajustado padding */}
       {isEditing ? (
-        <div className="flex gap-2 justify-end">
+        <>
           <Button onClick={handleSave} size="sm">Guardar Cambios</Button>
           <Button variant="outline" onClick={handleCancel} size="sm">Cancelar</Button>
-        </div>
+        </>
       ) : (
-        <div className="flex gap-2 justify-end">
+        <>
           <Button onClick={() => setIsEditing(true)} size="sm">Editar</Button>
           <DialogClose asChild>
             <Button variant="outline" size="sm">Cerrar</Button>
           </DialogClose>
-        </div>
+        </>
       )}
     </div>
   );
@@ -105,16 +105,17 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md sm:max-h-[80vh] p-0 flex flex-col overflow-hidden gap-0">
-          <DialogHeader className="p-4 pb-2 text-left flex-shrink-0 border-b">
+        {/* Aumentar la altura mínima del diálogo y asegurar flex-col */}
+        <DialogContent className="sm:max-w-md h-[500px] max-h-[90vh] p-0 flex flex-col overflow-hidden">
+          <DialogHeader className="px-6 py-4 text-left flex-shrink-0 border-b">
             <DialogTitle>{isEditing ? "Editar Nota" : "Detalle de la Nota"}</DialogTitle>
             <DialogDescription className="hidden">Detalle de la nota seleccionada</DialogDescription>
           </DialogHeader>
 
           {Body}
           
-          <DialogFooter className="p-0 flex-shrink-0 border-t bg-muted/10">
-             {/* El footer se renderiza dentro de Body o aquí, en este caso lo pasamos directo */}
+          {/* El footer ahora usa flex-shrink-0 y se posiciona correctamente */}
+          <DialogFooter className="flex-shrink-0 border-t bg-muted/10 p-0">
              {Footer}
           </DialogFooter>
         </DialogContent>
@@ -124,15 +125,16 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
 
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh] overflow-hidden flex flex-col">
-        <DrawerHeader className="px-4 pt-4 text-left flex-shrink-0 border-b pb-2">
+      {/* Aumentar la altura mínima del drawer y asegurar flex-col */}
+      <DrawerContent className="h-[500px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DrawerHeader className="px-6 pt-4 pb-2 text-left flex-shrink-0 border-b">
           <DrawerTitle>{isEditing ? "Editar Nota" : "Detalle de la Nota"}</DrawerTitle>
           <DrawerDescription className="hidden">Detalle de la nota seleccionada</DrawerDescription>
         </DrawerHeader>
 
         {Body}
 
-        <DrawerFooter className="p-0 flex-shrink-0 border-t bg-muted/10">{Footer}</DrawerFooter>
+        <DrawerFooter className="flex-shrink-0 border-t bg-muted/10 p-0">{Footer}</DrawerFooter>
       </DrawerContent>
     </Drawer>
   );
