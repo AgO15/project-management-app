@@ -17,8 +17,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const creationDate = new Date(project.created_at).toLocaleDateString();
 
   return (
-    // 1. h-full y flex-col aseguran que todas las tarjetas midan lo mismo
-    <Card className="flex flex-col h-full">
+    // 1. h-full para llenar la celda, flex-col para organizar verticalmente
+    <Card className="flex flex-col h-full transition-shadow hover:shadow-md">
       
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -29,34 +29,38 @@ export function ProjectCard({ project }: ProjectCardProps) {
             </CardTitle>
           </div>
         </div>
-      </CardHeader>
-
-      {/* 2. flex-1 hace que este contenedor crezca para llenar el espacio vacío */}
-      <CardContent className="flex-1 flex flex-col">
         
-        {/* Descripción: Ocupa su espacio natural */}
-        <CardDescription className="line-clamp-3 mb-4">
+        {/* Descripción en el Header (su lugar natural). line-clamp-3 limita el texto largo */}
+        <CardDescription className="pt-2 line-clamp-3">
           {project.description || <span className="italic opacity-50">No description provided</span>}
         </CardDescription>
+      </CardHeader>
 
-        {/* 3. mt-auto empuja esta fila (Estado y Fecha) hacia el fondo del Content */}
-        <div className="mt-auto flex justify-between items-center text-sm text-muted-foreground pt-2">
-            <span className="text-xs px-2 py-1 bg-muted rounded-md capitalize">
+      {/* 👇 2. EL TRUCO DEL ESPACIADOR (THE SPACER TRICK)
+         Este div invisible tiene flex-1. Crecerá para ocupar TODO el espacio vacío 
+         entre la descripción y el pie de página, empujando lo de abajo al fondo.
+      */}
+      <div className="flex-1" />
+
+      {/* 3. Información de Estado y Fecha */}
+      {/* Usamos un div manual aquí para controlar el padding exacto antes del botón */}
+      <div className="px-6 pb-4 flex justify-between items-center text-sm text-muted-foreground">
+          <span className="text-xs px-2 py-1 bg-muted rounded-md capitalize font-medium">
             {project.status}
-            </span>
-            <div className="flex items-center gap-2">
+          </span>
+          <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span>{creationDate}</span>
-            </div>
-        </div>
-      </CardContent>
+          </div>
+      </div>
       
-      {/* 4. El botón vive en el Footer, siempre alineado abajo */}
+      {/* 4. Botón en el Footer */}
       <CardFooter className="pt-0">
         <Link href={`/dashboard/projects/${project.id}`} className="w-full block">
           <Button variant="outline" className="w-full">Open Project</Button>
         </Link>
       </CardFooter>
+
     </Card>
   );
 }
