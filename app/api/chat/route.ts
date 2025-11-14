@@ -1,5 +1,3 @@
-// File: app/api/chat/route.ts
-
 import { GoogleGenAI } from "@google/genai";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -20,9 +18,10 @@ function createSupabaseServerClient() {
   );
 }
 
-// --- 2) Gemini client (new SDK) ---
+// --- 2) Gemini client ---
+// Usamos la variable de entorno si existe, si no, usamos un modelo REAL (1.5-flash)
+const GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-1.5-flash"; 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
-const GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-1.5-flash";
 
 export async function POST(req: Request) {
   try {
@@ -47,7 +46,7 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 });
     }
 
-    // --- 4) Query tasks (join project name) ---
+    // --- 4) Query tasks ---
     const { data: tasks, error: dbError } = await supabase
       .from("tasks")
       .select(`
@@ -63,11 +62,6 @@ export async function POST(req: Request) {
       console.error("Supabase error:", dbError);
       return new Response(JSON.stringify({ error: "Failed to fetch tasks" }), { status: 500 });
     }
-
-    console.log(
-      `[info] Tasks fetched for user: ${user.id}`,
-      Array.isArray(tasks) ? tasks.map(t => ({ title: t.title, status: t.status })) : tasks
-    );
 
     // --- 5) Build prompt/context ---
     const context =
@@ -91,13 +85,12 @@ Question:
 ${question}
 `.trim();
 
-    // --- 6) Call Gemini (new SDK) ---
+    // --- 6) Call Gemini ---
     const result = await ai.models.generateContent({
       model: GEMINI_MODEL,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
 
-    // NOTE: result.text is a getter returning string | undefined
     const text = result.text ?? "";
 
     if (!text) {
