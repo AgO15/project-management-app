@@ -1,6 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+@theme {
+  fontFamily {
+    /* 'analog' es el nombre que le damos a la clase (ej: font-analog) */
+    /* 'var(--font-rubik)' es la variable que definimos en layout.tsx */
+    analog: 'var(--font-rubik)',
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
