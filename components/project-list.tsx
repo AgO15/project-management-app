@@ -3,17 +3,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Calendar, Clock, Edit, Trash2 } from "lucide-react" // Importar iconos nuevos
+import { MoreHorizontal, Calendar, Clock, Edit, Trash2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
-import { useState, useRef } from "react" // Importar useState y useRef
+import { useState, useRef } from "react"
 import { 
   Drawer, 
   DrawerContent, 
   DrawerHeader, 
   DrawerTitle, 
   DrawerClose 
-} from "@/components/ui/drawer" // Importar Drawer
+} from "@/components/ui/drawer"
 
 interface Project {
   id: string
@@ -31,8 +31,6 @@ interface ProjectListProps {
 
 export function ProjectList({ projects }: ProjectListProps) {
   
-  // --- LÓGICA NUEVA PARA LONG PRESS Y DRAWER ---
-  
   const [actionMenuProject, setActionMenuProject] = useState<Project | null>(null);
   const [isLongPress, setIsLongPress] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
@@ -42,11 +40,12 @@ export function ProjectList({ projects }: ProjectListProps) {
     e.preventDefault(); 
     setIsLongPress(false);
     
+    // 👇 AQUÍ ESTÁ EL CAMBIO: 3000ms -> 1000ms
     pressTimer.current = setTimeout(() => {
       console.log("Long press activado!");
       setIsLongPress(true); 
       setActionMenuProject(project); 
-    }, 3000); // 3 segundos
+    }, 1000); // 1 segundo
   };
 
   const handlePressEnd = () => {
@@ -75,13 +74,9 @@ export function ProjectList({ projects }: ProjectListProps) {
     }
   };
   
-  // --- FIN DE LA LÓGICA NUEVA ---
-
-
   if (projects.length === 0) {
     return (
       <div className="text-center py-12">
-        {/* ... (código del estado vacío, no cambia) ... */}
         <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
           <Calendar className="h-8 w-8 text-muted-foreground" />
         </div>
@@ -98,7 +93,7 @@ export function ProjectList({ projects }: ProjectListProps) {
           
           <Card 
             key={project.id} 
-            className="hover:shadow-md transition-shadow flex flex-col h-full"
+            className="hover:shadow-md transition-shadow flex flex-col h-full select-none"
             onMouseDown={(e) => handlePressStart(e, project)}
             onMouseUp={handlePressEnd}
             onMouseLeave={handlePressEnd} 
@@ -133,7 +128,6 @@ export function ProjectList({ projects }: ProjectListProps) {
               {project.description ? (
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
               ) : (
-                // 👇 ¡AQUÍ ESTÁ EL ARREGLO!
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">&nbsp;</p> 
               )}
 
