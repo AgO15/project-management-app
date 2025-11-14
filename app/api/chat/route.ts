@@ -22,7 +22,7 @@ function createSupabaseServerClient() {
 
 // --- 2) Gemini client (new SDK) ---
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
-const GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-2.5-flash";
+const GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-1.5-flash";
 
 export async function POST(req: Request) {
   try {
