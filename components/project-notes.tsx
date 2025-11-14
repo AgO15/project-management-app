@@ -46,11 +46,20 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
     setLoading(true);
     const supabase = createClient();
     try {
+      // 1. Obtener el usuario autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("No estás autenticado");
+      }
+
       const { data, error } = await supabase
         .from("notes")
         .insert({
           content: newNoteContent.trim(),
           project_id: projectId,
+          user_id: user.id, // 2. Enviamos el ID del usuario (Solución al error 403)
+          title: "Nota de Proyecto" // Título por defecto
         })
         .select()
         .single();
@@ -65,10 +74,13 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
         title: "Note created",
         description: "Your note has been created successfully.",
       });
-    } catch (error) {
+      
+      router.refresh(); // Refrescar para asegurar consistencia
+    } catch (error: any) {
+      console.error("Error creating note:", error);
       toast({
         title: "Error",
-        description: "Failed to create note. Please try again.",
+        description: error.message || "Failed to create note. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -93,7 +105,8 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
         title: "Note deleted",
         description: "Your note has been deleted successfully.",
       });
-    } catch (error) {
+      router.refresh();
+    } catch (error: any) {
       toast({
         title: "Error",
         description: "Failed to delete note. Please try again.",
@@ -130,7 +143,8 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
         description: "Your note has been updated successfully.",
       });
       setSelectedNote(null); // Close the dialog
-    } catch (error) {
+      router.refresh();
+    } catch (error: any) {
       toast({
         title: "Error",
         description: "Failed to update note. Please try again.",
@@ -144,7 +158,6 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
   return (
     <>
       <div className="space-y-4">
-        {/* Header and "Add Note" button remain the same */}
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
                 <StickyNote className="h-5 w-5 text-muted-foreground" />
@@ -216,7 +229,7 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
               return (
                 <Card key={note.id}>
                   <CardContent className="p-4">
-                    <p className="text-foreground whitespace-pre-wrap mb-3">{truncated}</p>
+                    <p className="text-foreground whitespace-pre-wrap mb-3 text-sm">{truncated}</p>
                     <div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">
                             {note.updated_at !== note.created_at ? "Updated" : "Created"}{" "}
@@ -224,14 +237,14 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
                         </span>
                         <div className="flex gap-1">
                             {isTooLong && (
-                                <Button onClick={() => setSelectedNote(note)} variant="link" size="sm" className="p-0 h-auto text-blue-500">
+                                <Button onClick={() => setSelectedNote(note)} variant="link" size="sm" className="p-0 h-auto text-blue-500 mr-2">
                                     Show more
                                 </Button>
                             )}
-                            <Button onClick={() => setSelectedNote(note)} variant="ghost" size="sm">
+                            <Button onClick={() => setSelectedNote(note)} variant="ghost" size="sm" className="h-8 w-8 p-0">
                                 <Edit className="h-4 w-4" />
                             </Button>
-                            <Button onClick={() => deleteNote(note.id)} variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                            <Button onClick={() => deleteNote(note.id)} variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive">
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
@@ -256,6 +269,3 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
     </>
   );
 }
-
-// NOTE: I've omitted the full code for createNote, deleteNote, and the create/empty states
-// for brevity, as you indicated they should remain the same. You can copy them from your original file.
