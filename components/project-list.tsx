@@ -35,9 +35,13 @@ export function ProjectList({ projects }: ProjectListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    // 1. 👇 FORZAR FILAS DE IGUAL ALTURA AQUÍ
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-auto-rows-fr">
       {projects.map((project) => (
-        <Card key={project.id} className="hover:shadow-md transition-shadow">
+        
+        // 2. 👇 FORZAR TARJETA A LLENAR Y SER FLEX-COL
+        <Card key={project.id} className="hover:shadow-md transition-shadow flex flex-col h-full">
+          
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -60,9 +64,14 @@ export function ProjectList({ projects }: ProjectListProps) {
               </DropdownMenu>
             </div>
           </CardHeader>
-          <CardContent>
-            {project.description && (
+          
+          {/* 3. 👇 FORZAR CONTENIDO A CRECER (flex-1) */}
+          <CardContent className="flex-1 flex flex-col">
+            {project.description ? (
               <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
+            ) : (
+              // Relleno invisible para mantener espaciado
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">&nbsp;</p> 
             )}
 
             <div className="flex items-center justify-between">
@@ -73,7 +82,8 @@ export function ProjectList({ projects }: ProjectListProps) {
               </div>
             </div>
 
-            <Link href={`/projects/${project.id}`}>
+            {/* 4. 👇 EMPUJAR BOTÓN AL FONDO CON mt-auto */}
+            <Link href={`/projects/${project.id}`} className="mt-auto">
               <Button className="w-full mt-4 bg-transparent" variant="outline">
                 Open Project
               </Button>
