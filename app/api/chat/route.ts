@@ -1,52 +1,47 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-// --- 1) Supabase server client (SSR-safe) ---
-function createSupabaseServerClient() {
-  const cookieStore = cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-      },
-    }
-  );
-}
-
-// --- 2) Gemini client ---
-// Usamos la variable de entorno si existe, si no, usamos un modelo REAL (1.5-flash)
-const GEMINI_MODEL = process.env.GOOGLE_GEMINI_MODEL || "gemini-1.5-flash"; 
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY! });
-
 export async function POST(req: Request) {
   try {
+    // 1. Validar que la API Key existe
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      console.error("Error: GOOGLE_API_KEY is missing in environment variables");
+      return new Response(JSON.stringify({ error: "Server configuration error" }), { status: 500 });
+    }
+
+    // 2. Parsear la pregunta del usuario
     const { question } = await req.json();
     if (!question || typeof question !== "string") {
       return new Response(JSON.stringify({ error: "Question is required" }), { status: 400 });
     }
 
-    const supabase = createSupabaseServerClient();
+    // 3. Configurar Supabase
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
 
-    // --- 3) Auth ---
+    // 4. Autenticación
     const {
       data: { user },
       error: userErr,
     } = await supabase.auth.getUser();
 
-    if (userErr) {
-      console.error("Supabase auth error:", userErr);
-      return new Response(JSON.stringify({ error: "Auth error" }), { status: 500 });
-    }
-    if (!user) {
+    if (userErr || !user) {
       return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 });
     }
 
-    // --- 4) Query tasks ---
+    // 5. Obtener tareas del usuario (Contexto)
     const { data: tasks, error: dbError } = await supabase
       .from("tasks")
       .select(`
@@ -59,47 +54,54 @@ export async function POST(req: Request) {
       .eq("user_id", user.id);
 
     if (dbError) {
-      console.error("Supabase error:", dbError);
+      console.error("Supabase error fetching tasks:", dbError);
       return new Response(JSON.stringify({ error: "Failed to fetch tasks" }), { status: 500 });
     }
 
-    // --- 5) Build prompt/context ---
+    // 6. Construir el Prompt
     const context =
       tasks && tasks.length > 0
-        ? `Here is a list of all the user's tasks in JSON format:\n${JSON.stringify(tasks, null, 2)}`
+        ? `Here is a list of the user's tasks:\n${JSON.stringify(tasks, null, 2)}`
         : "The user currently has no tasks scheduled.";
 
-    const todayInVenezuela = new Date().toLocaleDateString("en-US", {
+    const todayInVenezuela = new Date().toLocaleDateString("es-VE", {
       timeZone: "America/Caracas",
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric'
     });
 
     const prompt = `
-You are a helpful project assistant. The current date is ${todayInVenezuela}.
-Based only on the following context, answer the user's question.
-Format your answers using Markdown. For lists, use bullet points. For emphasis, use **bold**.
+You are a helpful project management assistant. 
+Current date in Venezuela: ${todayInVenezuela}.
 
-Context:
+CONTEXT (User's Tasks):
 ${context}
 
-Question:
+USER QUESTION:
 ${question}
+
+INSTRUCTIONS:
+- Answer based ONLY on the context provided.
+- Use Markdown formatting (bold, lists) for readability.
+- Be concise and helpful.
 `.trim();
 
-    // --- 6) Call Gemini ---
-    const result = await ai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-    });
+    // 7. Llamar a Gemini (Usando la librería estable)
+    const genAI = new GoogleGenerativeAI(apiKey);
+    // Usamos 1.5-flash que es rápido y estable
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const text = result.text ?? "";
-
-    if (!text) {
-      return new Response(JSON.stringify({ error: "Empty response from model" }), { status: 502 });
-    }
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
     return new Response(JSON.stringify({ answer: text }), { status: 200 });
-  } catch (error) {
-    console.error("[error] API error:", error);
-    return new Response(JSON.stringify({ error: "Something went wrong" }), { status: 500 });
+
+  } catch (error: any) {
+    // Este log aparecerá en el panel de Vercel si algo falla
+    console.error("Detailed Chat API Error:", error);
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), { status: 500 });
   }
 }
