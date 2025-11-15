@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-type UpdatableField = "name" | "description";
+// 👇 ¡AQUÍ ESTÁ EL ARREGLO! Añadimos "status"
+type UpdatableField = "name" | "description" | "status";
 
 export async function updateProjectField(
   projectId: string,
