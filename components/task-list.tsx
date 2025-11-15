@@ -1,5 +1,3 @@
-// File: components/task-list.tsx
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -263,13 +261,15 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
 
           const showDueDate = sortBy !== "created_at" // for 'due_date' and 'priority' show due date
           return (
-            <Card key={task.id} className="hover:shadow-sm transition-shadow">
+            <Card key={task.id} className="hover:shadow-sm transition-shadow border border-border">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-start gap-3">
+                  
+                  {/* 👇 ESTA ES LA LÍNEA QUE CAMBIAMOS 👇 */}
                   <Checkbox
                     checked={task.status === "completed"}
                     onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? "completed" : "todo")}
-                    className="mt-1 h-5 w-5"
+                    className="mt-1 h-5 w-5 bg-background border-2 border-muted-foreground hover:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                   />
 
                   <div className="flex-1 min-w-0">
@@ -292,7 +292,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                                 {displayed}
                                 {shouldTruncate ? (
                                   <button
-                                    className="ml-1 underline text-green-700"
+                                    className="ml-1 underline text-primary" // Cambiado a text-primary (verde neón)
                                     onClick={() => setExpandedDescriptions({ ...expandedDescriptions, [task.id]: true })}
                                   >
                                     View more
@@ -355,7 +355,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                       {showDueDate ? (
                         task.due_date && (
                           <div
-                            className={`flex items-center gap-1 text-xs ${isOverdue ? "text-red-600" : "text-muted-foreground"}`}
+                            className={`flex items-center gap-1 text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
                           >
                             <Calendar className="h-3 w-3" />
                             {new Date(task.due_date).toLocaleDateString()}
@@ -372,7 +372,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
 
                     <div className="mt-3 pt-3 border-t border-border space-y-3">
                       <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
-                      <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} />
+                      <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} projectId={projectId} />
                       <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />
                     </div>
                   </div>
