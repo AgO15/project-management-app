@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react"; // 1. Volvemos a importar useState
+import { useState } from "react"; 
 import { toast } from "sonner";
 import { updateProjectField } from "@/app/actions";
 import { EditableText } from "@/components/EditableText";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-// (La interfaz no cambia)
 interface Project {
   id: string;
   name: string;
@@ -22,10 +21,8 @@ interface ProjectHeaderProps {
 }
 
 export function ProjectHeader({ project }: ProjectHeaderProps) {
-  // 2. Usamos useState para el estado local
   const [currentStatus, setCurrentStatus] = useState(project.status);
 
-  // (Las funciones de 'name' y 'description' no cambian)
   const handleSaveName = async (newName: string) => {
     const result = await updateProjectField(project.id, "name", newName);
     if (result.success) {
@@ -44,14 +41,14 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
     }
   };
 
-  // 3. Esta es la lógica de "Update Optimista"
   const handleStatusChange = async (newStatus: string) => {
+    // No hacer nada si se deselecciona (newStatus es "") o si es el mismo
     if (!newStatus || newStatus === currentStatus) {
       return;
     }
 
     const oldStatus = currentStatus;
-    setCurrentStatus(newStatus); // El estado SÍ se quedará aquí
+    setCurrentStatus(newStatus); // Update optimista
     
     toast.info("Updating project status...");
 
@@ -61,7 +58,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
       toast.success("Status updated to: " + newStatus);
     } else {
       toast.error(result.error);
-      setCurrentStatus(oldStatus); // Revertir solo si hay un error
+      setCurrentStatus(oldStatus); // Revertir si hay error
     }
   };
 
@@ -86,12 +83,12 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             {/* "Semaphore" ToggleGroup */}
             <div className="mt-2">
               <ToggleGroup
-                type="single"
-                value={currentStatus} // 4. El valor ahora es el estado local
+                // 👇 ¡ESTA LÍNEA ES LA MÁS IMPORTANTE!
+                type="single" 
+                value={currentStatus}
                 onValueChange={handleStatusChange}
                 className="flex gap-2 justify-start"
               >
-                {/* 5. Mantenemos el padding y whitespace */}
                 <ToggleGroupItem 
                   value="active" 
                   aria-label="Active" 
