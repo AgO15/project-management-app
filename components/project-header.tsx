@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react"; 
 import { toast } from "sonner";
 import { updateProjectField } from "@/app/actions";
 import { EditableText } from "@/components/EditableText";
@@ -22,10 +22,6 @@ interface ProjectHeaderProps {
 
 export function ProjectHeader({ project }: ProjectHeaderProps) {
   const [currentStatus, setCurrentStatus] = useState(project.status);
-
-  useEffect(() => {
-    setCurrentStatus(project.status);
-  }, [project.status]);
 
   const handleSaveName = async (newName: string) => {
     const result = await updateProjectField(project.id, "name", newName);
@@ -51,7 +47,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
     }
 
     const oldStatus = currentStatus;
-    setCurrentStatus(newStatus); // Optimistic update
+    setCurrentStatus(newStatus); 
     
     toast.info("Updating project status...");
 
@@ -61,7 +57,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
       toast.success("Status updated to: " + newStatus);
     } else {
       toast.error(result.error);
-      setCurrentStatus(oldStatus); // Revert if there's an error
+      setCurrentStatus(oldStatus); 
     }
   };
 
@@ -88,10 +84,10 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
               <ToggleGroup
                 type="single"
                 value={currentStatus}
+                // 👇 ¡AQUÍ ESTÁ EL ARREGLO!
                 onValueChange={handleStatusChange}
                 className="flex gap-2 justify-start"
               >
-                {/* --- REORDERED AS REQUESTED --- */}
                 <ToggleGroupItem 
                   value="active" 
                   aria-label="Active" 
