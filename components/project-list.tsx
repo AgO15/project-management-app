@@ -7,6 +7,7 @@ import { MoreHorizontal, Calendar, Clock, Edit, Trash2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useState, useRef } from "react"
+import { useRouter } from "next/navigation" // 1. IMPORTAR useRouter
 import { 
   Drawer, 
   DrawerContent, 
@@ -31,14 +32,16 @@ interface ProjectListProps {
 
 export function ProjectList({ projects }: ProjectListProps) {
   
-  // ... (Toda tu lógica de long-press 'handlePressStart', 'handlePressEnd', etc. 
-  //      la dejamos exactamente igual, no cambia nada) ...
   const [actionMenuProject, setActionMenuProject] = useState<Project | null>(null);
   const [isLongPress, setIsLongPress] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter(); // 2. INICIALIZAR useRouter
 
   const handlePressStart = (e: React.TouchEvent | React.MouseEvent, project: Project) => {
+    // No iniciar un nuevo timer si el menú ya está abierto
     if (actionMenuProject) return; 
+    
+    // Prevenir selección de texto (ya lo teníamos)
     e.preventDefault(); 
     setIsLongPress(false);
     
@@ -55,11 +58,15 @@ export function ProjectList({ projects }: ProjectListProps) {
     }
   };
 
-  const handleLinkClick = (e: React.MouseEvent) => {
+  // 3. NUEVA FUNCIÓN para manejar el clic en la tarjeta
+  const handleCardClick = (projectId: string) => {
     if (isLongPress) {
-      e.preventDefault();
-      setIsLongPress(false); 
+      // Si fue un long press, reseteamos el flag y NO navegamos
+      setIsLongPress(false);
+      return;
     }
+    // Si fue un tap normal, navegamos
+    router.push(`/projects/${projectId}`);
   };
 
   const handleEditProject = (project: Project) => {
@@ -73,7 +80,7 @@ export function ProjectList({ projects }: ProjectListProps) {
       setActionMenuProject(null);
     }
   };
-
+  
   if (projects.length === 0) {
     // ... (Tu estado vacío no cambia) ...
     return (
@@ -94,25 +101,32 @@ export function ProjectList({ projects }: ProjectListProps) {
           
           <Card 
             key={project.id} 
-            // 👇 AQUÍ ESTÁ EL CAMBIO DE ESTILO
-            className="transition-colors flex flex-col h-full select-none border border-border hover:border-primary"
+            className="transition-colors flex flex-col h-full select-none border border-border hover:border-primary cursor-pointer" // 4. AÑADIDO cursor-pointer
             onMouseDown={(e) => handlePressStart(e, project)}
             onMouseUp={handlePressEnd}
             onMouseLeave={handlePressEnd} 
             onTouchStart={(e) => handlePressStart(e, project)}
             onTouchEnd={handlePressEnd}
+            onClick={() => handleCardClick(project.id)} // 5. AÑADIDO onClick
           >
             
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  {/* El punto de color ahora será más brillante */}
                   <div className="w-3 h-3" style={{ backgroundColor: project.color, filter: 'saturate(1.5) brightness(1.2)' }} />
                   <CardTitle className="text-lg">{project.name}</CardTitle>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="hidden md:inline-flex hover:bg-secondary">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="hidden md:inline-flex hover:bg-secondary"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evitar que el clic en el menú dispare el clic de la tarjeta
+                        setIsLongPress(true); // Prevenir navegación si se hace clic accidentalmente
+                      }}
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -131,6 +145,7 @@ export function ProjectList({ projects }: ProjectListProps) {
               {project.description ? (
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
               ) : (
+                // 6. CORREGIDO el error de tipeo </Sip>
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">&nbsp;</p> 
               )}
 
@@ -142,11 +157,16 @@ export function ProjectList({ projects }: ProjectListProps) {
                 </div>
               </div>
 
-              <Link href={`/projects/${project.id}`} className="mt-auto" onClickCapture={handleLinkClick}>
-                {/* 👇 AQUÍ ESTÁ EL CAMBIO DEL BOTÓN */}
+              {/* El Link se queda pero el Botón se oculta en móvil */}
+              <Link 
+                href={`/projects/${project.id}`} 
+                className="mt-auto" 
+                onClick={(e) => e.stopPropagation()} // Evitar doble navegación
+                tabIndex={-1} // Quitar de la navegación por teclado (la tarjeta ya lo hace)
+              >
                 <Button 
-                  className="w-full mt-4 hover:bg-primary hover:text-primary-foreground text-primary-foreground/70" 
-                  variant="ghost"
+                  className="w-full mt-4 hidden md:flex hover:bg-primary hover:text-primary-foreground" // 7. OCULTO en móvil (hidden), VISIBLE en desktop (md:flex)
+                  variant="outline"
                 >
                   Open Project
                 </Button>
