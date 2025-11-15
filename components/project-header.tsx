@@ -1,12 +1,12 @@
 "use client";
 
-// ELIMINAMOS useState y useEffect. ¡Ya no los necesitamos!
+import { useState } from "react"; // 1. Volvemos a importar useState
 import { toast } from "sonner";
 import { updateProjectField } from "@/app/actions";
 import { EditableText } from "@/components/EditableText";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useRouter } from "next/navigation"; // Importamos useRouter
 
+// (La interfaz no cambia)
 interface Project {
   id: string;
   name: string;
@@ -22,10 +22,11 @@ interface ProjectHeaderProps {
 }
 
 export function ProjectHeader({ project }: ProjectHeaderProps) {
-  const router = useRouter(); // Usaremos router para refrescar
+  // 2. Usamos useState para el estado local
+  const [currentStatus, setCurrentStatus] = useState(project.status);
 
+  // (Las funciones de 'name' y 'description' no cambian)
   const handleSaveName = async (newName: string) => {
-    // ... (esta función no cambia)
     const result = await updateProjectField(project.id, "name", newName);
     if (result.success) {
       toast.success("Project name updated.");
@@ -35,7 +36,6 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
   };
 
   const handleSaveDescription = async (newDescription: string) => {
-    // ... (esta función no cambia)
     const result = await updateProjectField(project.id, "description", newDescription);
     if (result.success) {
       toast.success("Project description updated.");
@@ -44,27 +44,25 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
     }
   };
 
-  // ESTA FUNCIÓN AHORA ES MÁS SIMPLE
-  const handleStatusChange = (newStatus: string) => {
-    // Si no hay valor nuevo (ej: clic en el mismo botón), no hacer nada
-    if (!newStatus || newStatus === project.status) {
+  // 3. Esta es la lógica de "Update Optimista"
+  const handleStatusChange = async (newStatus: string) => {
+    if (!newStatus || newStatus === currentStatus) {
       return;
     }
 
+    const oldStatus = currentStatus;
+    setCurrentStatus(newStatus); // El estado SÍ se quedará aquí
+    
     toast.info("Updating project status...");
 
-    // Llamamos a la Server Action. No esperamos (fire-and-forget).
-    // revalidatePath (en actions.ts) se encargará de refrescar los props.
-    updateProjectField(project.id, "status", newStatus)
-      .then((result) => {
-        if (result.success) {
-          toast.success("Status updated!");
-          // Forzamos un refresh del router para asegurar que los datos se actualicen
-          router.refresh(); 
-        } else {
-          toast.error(result.error);
-        }
-      });
+    const result = await updateProjectField(project.id, "status", newStatus);
+
+    if (result.success) {
+      toast.success("Status updated to: " + newStatus);
+    } else {
+      toast.error(result.error);
+      setCurrentStatus(oldStatus); // Revertir solo si hay un error
+    }
   };
 
   return (
@@ -89,12 +87,11 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             <div className="mt-2">
               <ToggleGroup
                 type="single"
-                // AHORA LEE DIRECTAMENTE DEL PROP
-                value={project.status} 
+                value={currentStatus} // 4. El valor ahora es el estado local
                 onValueChange={handleStatusChange}
                 className="flex gap-2 justify-start"
               >
-                {/* CAMBIOS DE ESTILO: px-4 y whitespace-nowrap */}
+                {/* 5. Mantenemos el padding y whitespace */}
                 <ToggleGroupItem 
                   value="active" 
                   aria-label="Active" 
