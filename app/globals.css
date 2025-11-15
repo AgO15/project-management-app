@@ -1,21 +1,12 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/*
-  PASO 1: 
-  Definimos las fuentes base. Usamos (;) en lugar de (,)
+/* EL BLOQUE @theme INVÁLIDO HA SIDO ELIMINADO DE AQUÍ.
 */
-@theme {
-  fontFamily {
-    sans: 'var(--font-roboto-mono)'; /* ✅ Corregido */
-    mono: 'var(--font-roboto-mono)'; /* ✅ Corregido */
-  }
-}
 
 @custom-variant dark (&:is(.dark *));
 
-/*
-  PASO 2: 
+/* PASO 1: 
   Definimos la paleta de colores "Hacker UI" y matamos el radio.
 */
 :root {
@@ -105,16 +96,16 @@
   --sidebar-ring: oklch(0.7 0.2 140);
 }
 
-/*
-  PASO 3: 
+/* PASO 2: 
   Mapeamos las variables de Tailwind a nuestras nuevas variables.
+  Aquí cambiamos las fuentes y los radios.
 */
 @theme inline {
-  /* Cambiamos las fuentes por defecto a Roboto Mono */
+  /* 👇 ESTAS SON LAS LÍNEAS CORRECTAS EN EL LUGAR CORRECTO 👇 */
   --font-sans: var(--font-roboto-mono);
   --font-mono: var(--font-roboto-mono);
   
-  /* Las variables de color ya leen de :root, así que no hay que tocarlas */
+  /* Las variables de color ya leen de :root */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
