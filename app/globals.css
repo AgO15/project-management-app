@@ -1,20 +1,21 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/* PASO 1: 
-  Definimos las fuentes base. Hacemos que la fuente por defecto ('sans')
-  y la 'mono' sean nuestra nueva fuente 'Roboto Mono' que viene de layout.tsx
+/*
+  PASO 1: 
+  Definimos las fuentes base. Usamos (;) en lugar de (,)
 */
 @theme {
   fontFamily {
-    sans: 'var(--font-roboto-mono)',
-    mono: 'var(--font-roboto-mono)',
+    sans: 'var(--font-roboto-mono)'; /* ✅ Corregido */
+    mono: 'var(--font-roboto-mono)'; /* ✅ Corregido */
   }
 }
 
 @custom-variant dark (&:is(.dark *));
 
-/* PASO 2: 
+/*
+  PASO 2: 
   Definimos la paleta de colores "Hacker UI" y matamos el radio.
 */
 :root {
@@ -104,9 +105,9 @@
   --sidebar-ring: oklch(0.7 0.2 140);
 }
 
-/* PASO 3: 
+/*
+  PASO 3: 
   Mapeamos las variables de Tailwind a nuestras nuevas variables.
-  Aquí cambiamos las fuentes y los radios.
 */
 @theme inline {
   /* Cambiamos las fuentes por defecto a Roboto Mono */
