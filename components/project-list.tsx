@@ -31,6 +31,8 @@ interface ProjectListProps {
 
 export function ProjectList({ projects }: ProjectListProps) {
   
+  // ... (Toda tu lógica de long-press 'handlePressStart', 'handlePressEnd', etc. 
+  //      la dejamos exactamente igual, no cambia nada) ...
   const [actionMenuProject, setActionMenuProject] = useState<Project | null>(null);
   const [isLongPress, setIsLongPress] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
@@ -40,9 +42,7 @@ export function ProjectList({ projects }: ProjectListProps) {
     e.preventDefault(); 
     setIsLongPress(false);
     
-    // 👇 AQUÍ ESTÁ EL CAMBIO: 3000ms -> 1000ms
     pressTimer.current = setTimeout(() => {
-      console.log("Long press activado!");
       setIsLongPress(true); 
       setActionMenuProject(project); 
     }, 1000); // 1 segundo
@@ -73,15 +73,16 @@ export function ProjectList({ projects }: ProjectListProps) {
       setActionMenuProject(null);
     }
   };
-  
+
   if (projects.length === 0) {
+    // ... (Tu estado vacío no cambia) ...
     return (
       <div className="text-center py-12">
         <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-          <Calendar className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-medium text-foreground mb-2">No projects yet</h3>
-        <p className="text-muted-foreground mb-4">Create your first project to get started with task management</p>
+      	<Calendar className="h-8 w-8 text-muted-foreground" />
+    	</div>
+    	<h3 className="text-lg font-medium text-foreground mb-2">No projects yet</h3>
+    	<p className="text-muted-foreground mb-4">Create your first project to get started with task management</p>
       </div>
     )
   }
@@ -93,7 +94,8 @@ export function ProjectList({ projects }: ProjectListProps) {
           
           <Card 
             key={project.id} 
-            className="hover:shadow-md transition-shadow flex flex-col h-full select-none"
+            // 👇 AQUÍ ESTÁ EL CAMBIO DE ESTILO
+            className="transition-colors flex flex-col h-full select-none border border-border hover:border-primary"
             onMouseDown={(e) => handlePressStart(e, project)}
             onMouseUp={handlePressEnd}
             onMouseLeave={handlePressEnd} 
@@ -104,12 +106,13 @@ export function ProjectList({ projects }: ProjectListProps) {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project.color }} />
+                  {/* El punto de color ahora será más brillante */}
+                  <div className="w-3 h-3" style={{ backgroundColor: project.color, filter: 'saturate(1.5) brightness(1.2)' }} />
                   <CardTitle className="text-lg">{project.name}</CardTitle>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                    <Button variant="ghost" size="sm" className="hidden md:inline-flex hover:bg-secondary">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -140,7 +143,11 @@ export function ProjectList({ projects }: ProjectListProps) {
               </div>
 
               <Link href={`/projects/${project.id}`} className="mt-auto" onClickCapture={handleLinkClick}>
-                <Button className="w-full mt-4 bg-transparent" variant="outline">
+                {/* 👇 AQUÍ ESTÁ EL CAMBIO DEL BOTÓN */}
+                <Button 
+                  className="w-full mt-4 hover:bg-primary hover:text-primary-foreground text-primary-foreground/70" 
+                  variant="ghost"
+                >
                   Open Project
                 </Button>
               </Link>
@@ -149,7 +156,7 @@ export function ProjectList({ projects }: ProjectListProps) {
         ))}
       </div>
 
-      {/* EL DRAWER (POP-UP DE MÓVIL) */}
+      {/* ... (Tu componente Drawer no cambia) ... */}
       <Drawer open={!!actionMenuProject} onOpenChange={(isOpen) => !isOpen && setActionMenuProject(null)}>
         <DrawerContent>
           <DrawerHeader className="text-left">
@@ -157,18 +164,18 @@ export function ProjectList({ projects }: ProjectListProps) {
           </DrawerHeader>
           
           <div className="p-4 pt-0">
-            <Button onClick={() => handleEditProject(actionMenuProject!)} variant="outline" className="w-full justify-start gap-2">
+            <Button onClick={() => handleEditProject(actionMenuProject!)} variant="ghost" className="w-full justify-start gap-2 hover:bg-secondary">
               <Edit className="h-4 w-4" />
               Edit Project
             </Button>
             
-            <Button onClick={() => handleDeleteProject(actionMenuProject!)} variant="outline" className="w-full justify-start gap-2 mt-2 text-destructive">
+            <Button onClick={() => handleDeleteProject(actionMenuProject!)} variant="ghost" className="w-full justify-start gap-2 mt-2 text-destructive hover:bg-destructive hover:text-destructive-foreground">
               <Trash2 className="h-4 w-4" />
               Delete Project
             </Button>
             
             <DrawerClose asChild className="mt-4">
-              <Button variant="outline" className="w-full">Cancel</Button>
+              <Button variant="outline" className="w-full hover:bg-secondary">Cancel</Button>
             </DrawerClose>
           </div>
         </DrawerContent>

@@ -1,91 +1,119 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* PASO 1: 
+  Definimos las fuentes base. Hacemos que la fuente por defecto ('sans')
+  y la 'mono' sean nuestra nueva fuente 'Roboto Mono' que viene de layout.tsx
+*/
 @theme {
   fontFamily {
-    /* 'analog' es el nombre que le damos a la clase (ej: font-analog) */
-    /* 'var(--font-rubik)' es la variable que definimos en layout.tsx */
-    analog: 'var(--font-rubik)',
+    sans: 'var(--font-roboto-mono)',
+    mono: 'var(--font-roboto-mono)',
   }
 }
 
 @custom-variant dark (&:is(.dark *));
 
+/* PASO 2: 
+  Definimos la paleta de colores "Hacker UI" y matamos el radio.
+*/
 :root {
-  /* Using the green professional theme from the chat component */
-  --background: oklch(0.98 0.01 142); /* Light greenish background */
-  --foreground: oklch(0.25 0.01 240); /* Dark gray text */
-  --card: oklch(1 0 0); /* Pure white for cards */
-  --card-foreground: oklch(0.25 0.01 240); /* Dark gray for card text */
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.01 240);
-  --primary: oklch(0.45 0.15 142); /* Green-700 primary */
-  --primary-foreground: oklch(0.98 0 0); /* White text on primary */
-  --secondary: oklch(0.97 0.01 142); /* Light greenish secondary */
-  --secondary-foreground: oklch(0.25 0.01 240);
-  --muted: oklch(0.95 0.01 142); /* Muted greenish */
-  --muted-foreground: oklch(0.55 0.01 240); /* Muted text */
-  --accent: oklch(0.65 0.18 120); /* Bright green accent */
-  --accent-foreground: oklch(0.98 0 0); /* White text on accent */
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.01 142); /* Light green border */
-  --input: oklch(0.97 0.01 142); /* Light greenish input */
-  --ring: oklch(0.45 0.15 142); /* Green focus ring */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.5rem; /* Using the adjusted radius for a modern look */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.25 0.01 240);
-  --sidebar-primary: oklch(0.9 0.01 142);
-  --sidebar-primary-foreground: oklch(0.25 0.01 240);
-  --sidebar-accent: oklch(0.65 0.18 120);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.9 0.01 142);
-  --sidebar-ring: oklch(0.45 0.15 142);
+  /* Paleta Hacker/FUI (Verde Neón) */
+  --background: oklch(0.05 0 0); /* Casi Negro */
+  --foreground: oklch(0.9 0.01 140); /* Verde Pálido (Texto) */
+  
+  --card: oklch(0.05 0 0); /* Fondo de tarjeta = fondo de app */
+  --card-foreground: oklch(0.9 0.01 140); 
+  
+  --popover: oklch(0.1 0 0); /* Popover un poco más claro */
+  --popover-foreground: oklch(0.9 0.01 140);
+
+  --primary: oklch(0.7 0.2 140); /* Verde Neón Acento */
+  --primary-foreground: oklch(0.05 0 0); /* Texto negro en botones verdes */
+
+  --secondary: oklch(0.2 0.01 140); /* Verde oscuro (para hover sutil) */
+  --secondary-foreground: oklch(0.9 0.01 140);
+
+  --muted: oklch(0.15 0.01 140);
+  --muted-foreground: oklch(0.5 0.01 140); /* Texto gris (apagado) */
+
+  --accent: oklch(0.7 0.2 140);
+  --accent-foreground: oklch(0.05 0 0);
+
+  --destructive: oklch(0.6 0.2 25); /* Rojo Neón Alerta */
+  --destructive-foreground: oklch(0.95 0 0);
+
+  --border: oklch(0.3 0.01 140); /* Borde visible (clave para wireframe) */
+  --input: oklch(0.1 0.01 140); /* Input un poco más claro que el fondo */
+  --ring: oklch(0.7 0.2 140); /* Anillo de foco Verde Neón */
+
+  /* Matar las esquinas redondeadas */
+  --radius: 0rem; 
+
+  /* Variables de Charts y Sidebar (heredan los nuevos colores) */
+  --chart-1: oklch(0.7 0.2 140); /* Verde Neón */
+  --chart-2: oklch(0.6 0.118 184.704); /* Cian */
+  --chart-3: oklch(0.6 0.2 25); /* Rojo Neón */
+  --chart-4: oklch(0.828 0.189 84.429); /* Lima */
+  --chart-5: oklch(0.769 0.188 70.08); /* Amarillo */
+  
+  --sidebar: oklch(0.05 0 0);
+  --sidebar-foreground: oklch(0.9 0.01 140);
+  --sidebar-primary: oklch(0.2 0.01 140);
+  --sidebar-primary-foreground: oklch(0.9 0.01 140);
+  --sidebar-accent: oklch(0.7 0.2 140);
+  --sidebar-accent-foreground: oklch(0.05 0 0);
+  --sidebar-border: oklch(0.3 0.01 140);
+  --sidebar-ring: oklch(0.7 0.2 140);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Hacemos que el modo oscuro sea idéntico al modo claro (dark-by-default) */
+  --background: oklch(0.05 0 0); 
+  --foreground: oklch(0.9 0.01 140);
+  --card: oklch(0.05 0 0); 
+  --card-foreground: oklch(0.9 0.01 140); 
+  --popover: oklch(0.1 0 0); 
+  --popover-foreground: oklch(0.9 0.01 140);
+  --primary: oklch(0.7 0.2 140); 
+  --primary-foreground: oklch(0.05 0 0); 
+  --secondary: oklch(0.2 0.01 140); 
+  --secondary-foreground: oklch(0.9 0.01 140);
+  --muted: oklch(0.15 0.01 140);
+  --muted-foreground: oklch(0.5 0.01 140); 
+  --accent: oklch(0.7 0.2 140);
+  --accent-foreground: oklch(0.05 0 0);
+  --destructive: oklch(0.6 0.2 25); 
+  --destructive-foreground: oklch(0.95 0 0);
+  --border: oklch(0.3 0.01 140); 
+  --input: oklch(0.1 0.01 140); 
+  --ring: oklch(0.7 0.2 140); 
+  --radius: 0rem; 
+  --chart-1: oklch(0.7 0.2 140);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.6 0.2 25);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.05 0 0);
+  --sidebar-foreground: oklch(0.9 0.01 140);
+  --sidebar-primary: oklch(0.2 0.01 140);
+  --sidebar-primary-foreground: oklch(0.9 0.01 140);
+  --sidebar-accent: oklch(0.7 0.2 140);
+  --sidebar-accent-foreground: oklch(0.05 0 0);
+  --sidebar-border: oklch(0.3 0.01 140);
+  --sidebar-ring: oklch(0.7 0.2 140);
 }
 
+/* PASO 3: 
+  Mapeamos las variables de Tailwind a nuestras nuevas variables.
+  Aquí cambiamos las fuentes y los radios.
+*/
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Cambiamos las fuentes por defecto a Roboto Mono */
+  --font-sans: var(--font-roboto-mono);
+  --font-mono: var(--font-roboto-mono);
+  
+  /* Las variables de color ya leen de :root, así que no hay que tocarlas */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -110,10 +138,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Forzamos TODAS las esquinas a 0 */
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
