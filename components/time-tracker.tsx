@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils" // Asegúrate de importar cn
 
 interface TimeEntry {
   id: string
@@ -313,17 +314,20 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
+  // Quick time presets
+  const timePresets = [30, 45, 60];
+
   return (
     <div className="space-y-3">
       {/* Timer Controls */}
       <div className="flex items-center gap-2">
         {isRunning ? (
           <div className="flex items-center gap-2">
-            <Badge variant="default" className="bg-green-600">
-              <Clock className="h-3 w-3 mr-1" />
+            <Badge variant="outline" className="border-primary text-primary animate-pulse bg-primary/10 font-mono text-sm">
+              <Clock className="h-3 w-3 mr-2" />
               {formatElapsedTime(elapsedTime)}
             </Badge>
-            <Button onClick={stopTimer} disabled={loading} size="sm" variant="outline">
+            <Button onClick={stopTimer} disabled={loading} size="sm" variant="destructive" className="hover:bg-destructive/80">
               <Square className="h-3 w-3 mr-1" />
               Stop
             </Button>
@@ -339,11 +343,11 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
       {/* Time Entries Collapsible */}
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="flex items-center gap-2 p-0 h-auto">
+          <Button variant="ghost" size="sm" className="flex items-center gap-2 p-0 h-auto hover:bg-transparent hover:text-primary">
             {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             <Clock className="h-4 w-4" />
             <span className="text-sm">Time Entries</span>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs ml-1 font-mono">
               {formatDuration(totalMinutes)}
             </Badge>
           </Button>
@@ -355,9 +359,9 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
             <div className="flex items-center gap-2">
               <Dialog open={showManualEntry} onOpenChange={setShowManualEntry}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
+                  <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent border-dashed border-muted-foreground/50 text-muted-foreground hover:text-primary hover:border-primary">
                     <Plus className="h-3 w-3" />
-                    Add Time
+                    Add Manual Time
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md sm:max-h-[90vh] flex flex-col overflow-hidden">
@@ -379,8 +383,28 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
                         />
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <Label htmlFor="manual-duration">Duration (minutes)</Label>
+                        
+                        {/* 👇 AQUÍ ESTÁN LOS BOTONES DE SELECCIÓN RÁPIDA 👇 */}
+                        <div className="flex gap-2 mb-2">
+                          {timePresets.map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => setManualDuration(preset.toString())}
+                              className={cn(
+                                "px-3 py-1 text-xs font-medium rounded-md border transition-colors",
+                                manualDuration === preset.toString()
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-transparent border-input text-muted-foreground hover:border-primary hover:text-primary"
+                              )}
+                            >
+                              {preset}m
+                            </button>
+                          ))}
+                        </div>
+
                         <Input
                           id="manual-duration"
                           type="number"
@@ -407,11 +431,11 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
 
             {/* Time Entries List */}
             {timeEntries.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No time entries yet</p>
+              <p className="text-sm text-muted-foreground italic">No time entries yet</p>
             ) : (
               <div className="space-y-2">
                 {timeEntries.map((entry) => (
-                  <Card key={entry.id} className="bg-muted/30">
+                  <Card key={entry.id} className="bg-muted/10 border border-border/50">
                     <CardContent className="p-3">
                       {editingId === entry.id ? (
                         <div className="space-y-3">
@@ -449,12 +473,12 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
                             <p className="text-sm font-medium text-foreground mb-1">{entry.description}</p>
                           )}
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono">
                               <span>
                                 {formatTime(entry.start_time)}
                                 {entry.end_time && ` - ${formatTime(entry.end_time)}`}
                               </span>
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-xs border-muted-foreground/30 text-muted-foreground">
                                 {entry.end_time ? formatDuration(entry.duration_minutes) : "Running"}
                               </Badge>
                             </div>
@@ -464,7 +488,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
                                   onClick={() => startEdit(entry)}
                                   variant="ghost"
                                   size="sm"
-                                  className="h-6 w-6 p-0"
+                                  className="h-6 w-6 p-0 hover:text-primary"
                                 >
                                   <Edit className="h-3 w-3" />
                                 </Button>
@@ -472,7 +496,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
                                   onClick={() => deleteTimeEntry(entry.id)}
                                   variant="ghost"
                                   size="sm"
-                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive/80"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
