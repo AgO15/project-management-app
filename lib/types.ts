@@ -33,7 +33,7 @@ export interface Project {
   name: string;
   description: string | null;
   color: string | null;
-  status: 'active' | 'completed' | 'archived';
+  status: 'active' | 'paused' | 'not_started' | 'completed' | 'archived';
   user_id: string;
 }
 
