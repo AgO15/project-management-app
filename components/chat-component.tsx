@@ -22,6 +22,23 @@ export function ChatComponent() {
     e.preventDefault();
     if (!input.trim()) return;
 
+    // Local Commands
+    if (input.trim().toLowerCase() === '/clear') {
+      setMessages([]);
+      setInput("");
+      return;
+    }
+
+    if (input.trim().toLowerCase() === '/help') {
+      const helpMessage: Message = {
+        role: 'bot',
+        content: "**Available Commands:**\n- `/clear`: Clear chat history.\n- `/help`: Show this help message.\n- **Natural Language**: \"Create a task to...\", \"What are my tasks?\""
+      };
+      setMessages((prev) => [...prev, { role: 'user', content: input }, helpMessage]);
+      setInput("");
+      return;
+    }
+
     const userMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);

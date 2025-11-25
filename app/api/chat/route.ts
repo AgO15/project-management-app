@@ -66,9 +66,9 @@ export async function POST(req: Request) {
 
     const todayInVenezuela = new Date().toLocaleDateString("es-VE", {
       timeZone: "America/Caracas",
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
       day: 'numeric'
     });
 
@@ -83,19 +83,58 @@ USER QUESTION:
 ${question}
 
 INSTRUCTIONS:
-- Answer based ONLY on the context provided.
-- Use Markdown formatting (bold, lists) for readability.
+- If the user asks to CREATE a task, return a JSON object with this EXACT structure (do not add markdown formatting like \`\`\`json):
+  { "action": "create_task", "data": { "title": "Task Title", "priority": "normal", "status": "todo" } }
+  - Priority can be: low, normal, high.
+  - Status can be: todo, in_progress, done.
+- If the user asks a question, answer based on the context provided.
+- Use Markdown formatting (bold, lists) for readability in normal answers.
 - Be concise and helpful.
 `.trim();
 
     // 7. Llamar a Gemini (Usando la librería estable)
     const genAI = new GoogleGenerativeAI(apiKey);
-    // Usamos 1.5-flash que es rápido y estable
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    let text = response.text();
+
+    // 8. Intentar parsear comando
+    try {
+      // Limpiar posibles bloques de código markdown si el modelo los añade
+      const cleanText = text.replace(/```json\n?|\n?```/g, "").trim();
+
+      if (cleanText.startsWith("{") && cleanText.endsWith("}")) {
+        const command = JSON.parse(cleanText);
+
+        if (command.action === "create_task") {
+          const { data: newTask, error: insertError } = await supabase
+            .from("tasks")
+            .insert({
+              ...command.data,
+              user_id: user.id,
+              // Default values if not provided
+              priority: command.data.priority || "normal",
+              status: command.data.status || "todo",
+            })
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error("Error creating task:", insertError);
+            return new Response(JSON.stringify({ answer: "I tried to create the task, but something went wrong." }), { status: 200 });
+          }
+
+          return new Response(JSON.stringify({
+            answer: `✅ Task created successfully: **${newTask.title}** (Priority: ${newTask.priority})`
+          }), { status: 200 });
+        }
+      }
+    } catch (e) {
+      // Not a JSON command, continue as normal text
+      console.log("Response was not a JSON command", e);
+    }
 
     return new Response(JSON.stringify({ answer: text }), { status: 200 });
 
