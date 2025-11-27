@@ -1,10 +1,10 @@
-// File: components/chat-component.tsx (or similar)
+// File: components/chat-component.tsx
 
 "use client";
 
 import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,6 @@ import { CalendarIcon, Loader2, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@/lib/supabase/client";
 
 interface Message {
   role: 'user' | 'bot' | 'system';
@@ -44,7 +43,6 @@ export function ChatComponent() {
   const [taskPriority, setTaskPriority] = useState("medium");
   const [taskDueDate, setTaskDueDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
-  const supabase = createClient();
 
   // Fetch projects on mount
   useEffect(() => {
@@ -200,16 +198,21 @@ export function ChatComponent() {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.from("tasks").insert({
-        title: pendingTaskTitle,
-        description: taskDescription.trim() || null,
-        priority: taskPriority,
-        due_date: taskDueDate ? taskDueDate.toISOString() : null,
-        project_id: selectedProject.id,
-        status: "todo"
-      }).select().single();
+      const response = await fetch('/api/tasks/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: pendingTaskTitle,
+          description: taskDescription.trim() || undefined,
+          priority: taskPriority,
+          due_date: taskDueDate ? taskDueDate.toISOString() : undefined,
+          project_id: selectedProject.id,
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to create task');
+
+      const data = await response.json();
 
       // Remove project selector and add confirmation
       setMessages((prev) => {
@@ -218,7 +221,7 @@ export function ChatComponent() {
           ...filtered,
           {
             role: 'bot',
-            content: `✅ **Task created successfully!**\\n\\nTask: **${data.title}**\\nProject: **${selectedProject.name}**\\nPriority: ${data.priority}\\nStatus: ${data.status}`
+            content: `✅ **Task created successfully!**\\n\\nTask: **${data.task.title}**\\nProject: **${selectedProject.name}**\\nPriority: ${data.task.priority}\\nStatus: ${data.task.status}`
           }
         ];
       });
@@ -232,7 +235,7 @@ export function ChatComponent() {
 
       toast({
         title: "Task created",
-        description: `${data.title} has been created in ${selectedProject.name}.`,
+        description: `${data.task.title} has been created in ${selectedProject.name}.`,
       });
     } catch (error) {
       console.error("Task creation error:", error);
