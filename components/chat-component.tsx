@@ -42,6 +42,7 @@ export function ChatComponent() {
   const [taskDescription, setTaskDescription] = useState("");
   const [taskPriority, setTaskPriority] = useState("medium");
   const [taskDueDate, setTaskDueDate] = useState<Date | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { toast } = useToast();
 
   // Fetch projects on mount
@@ -232,6 +233,7 @@ export function ChatComponent() {
       setTaskDescription("");
       setTaskPriority("medium");
       setTaskDueDate(undefined);
+      setIsCalendarOpen(false);
 
       toast({
         title: "Task created",
@@ -256,6 +258,7 @@ export function ChatComponent() {
     setTaskDescription("");
     setTaskPriority("medium");
     setTaskDueDate(undefined);
+    setIsCalendarOpen(false);
   };
 
   return (
@@ -353,7 +356,7 @@ export function ChatComponent() {
                     {/* Due Date */}
                     <div className="space-y-2 mb-4">
                       <Label className="text-xs uppercase tracking-wide">Due Date</Label>
-                      <Popover>
+                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -373,6 +376,15 @@ export function ChatComponent() {
                             onSelect={setTaskDueDate}
                             initialFocus
                           />
+                          <div className="p-3 border-t">
+                            <Button
+                              onClick={() => setIsCalendarOpen(false)}
+                              className="w-full font-mono text-xs rounded-none border-2"
+                              size="sm"
+                            >
+                              Done
+                            </Button>
+                          </div>
                         </PopoverContent>
                       </Popover>
                     </div>
