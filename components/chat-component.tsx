@@ -2,26 +2,68 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
+import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TaskCreationForm } from "@/components/chat/TaskCreationForm";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Loader2, X } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@/lib/supabase/client";
 
 interface Message {
-  role: 'user' | 'bot' | 'form';
+  role: 'user' | 'bot' | 'system';
   content: string;
-  formType?: 'task-creation';
-  formData?: any;
+  showProjectSelector?: boolean;
+  pendingTaskTitle?: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  color: string;
 }
 
 export function ChatComponent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+  const [pendingTaskTitle, setPendingTaskTitle] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskPriority, setTaskPriority] = useState("medium");
+  const [taskDueDate, setTaskDueDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
+  const supabase = createClient();
+
+  // Fetch projects on mount
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    setIsLoadingProjects(true);
+    try {
+      const response = await fetch("/api/projects/list");
+      if (!response.ok) throw new Error("Failed to fetch projects");
+      const data = await response.json();
+      setProjects(data.projects || []);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    } finally {
+      setIsLoadingProjects(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,31 +73,51 @@ export function ChatComponent() {
     if (input.trim().toLowerCase() === '/clear') {
       setMessages([]);
       setInput("");
+      setPendingTaskTitle(null);
+      setSelectedProject(null);
       return;
     }
 
     if (input.trim().toLowerCase() === '/help') {
       const helpMessage: Message = {
         role: 'bot',
-        content: "**Available Commands:**\\n- `/clear`: Clear chat history.\\n- `/help`: Show this help message.\\n- `/create task [task name]`: Create a new task.\\n- `/create project [project name]`: Create a new project.\\n- **Natural Language**: \"What are my tasks?\""
+        content: "**Available Commands:**\\n- `/clear`: Clear chat history.\\n- `/help`: Show this help message.\\n- `/task [task name]`: Create a new task.\\n- `/create project [project name]`: Create a new project.\\n- **Natural Language**: \"crear tarea [task name]\""
       };
       setMessages((prev) => [...prev, { role: 'user', content: input }, helpMessage]);
       setInput("");
       return;
     }
 
-    // Task Creation Command
-    const createTaskMatch = input.match(/^\/create task\s+(.+)$/i);
-    if (createTaskMatch) {
-      const taskName = createTaskMatch[1].trim();
+    // Task Creation Detection - /task command
+    const taskCommandMatch = input.match(/^\/task\s+(.+)$/i);
+    if (taskCommandMatch) {
+      const taskTitle = taskCommandMatch[1].trim();
       const userMessage: Message = { role: 'user', content: input };
-      const formMessage: Message = {
-        role: 'form',
-        content: '',
-        formType: 'task-creation',
-        formData: { initialTaskName: taskName }
+      const systemMessage: Message = {
+        role: 'system',
+        content: `Creating task: **${taskTitle}**\\n\\nPlease select a project and fill in the details:`,
+        showProjectSelector: true,
+        pendingTaskTitle: taskTitle
       };
-      setMessages((prev) => [...prev, userMessage, formMessage]);
+      setMessages((prev) => [...prev, userMessage, systemMessage]);
+      setPendingTaskTitle(taskTitle);
+      setInput("");
+      return;
+    }
+
+    // Task Creation Detection - Natural language "crear tarea [title]"
+    const naturalTaskMatch = input.match(/^crear tarea\s+(.+)$/i);
+    if (naturalTaskMatch) {
+      const taskTitle = naturalTaskMatch[1].trim();
+      const userMessage: Message = { role: 'user', content: input };
+      const systemMessage: Message = {
+        role: 'system',
+        content: `Creating task: **${taskTitle}**\\n\\nPlease select a project and fill in the details:`,
+        showProjectSelector: true,
+        pendingTaskTitle: taskTitle
+      };
+      setMessages((prev) => [...prev, userMessage, systemMessage]);
+      setPendingTaskTitle(taskTitle);
       setInput("");
       return;
     }
@@ -68,7 +130,6 @@ export function ChatComponent() {
       setMessages((prev) => [...prev, userMessage]);
       setInput("");
 
-      // Create project directly
       setIsLoading(true);
       try {
         const response = await fetch('/api/projects/create', {
@@ -82,9 +143,12 @@ export function ChatComponent() {
         const data = await response.json();
         const botMessage: Message = {
           role: 'bot',
-          content: `✅ **Project created successfully!**\\n\\nProject: **${data.project.name}**\\n\\nYou can now create tasks in this project using \`/create task [task name]\``
+          content: `✅ **Project created successfully!**\\n\\nProject: **${data.project.name}**\\n\\nYou can now create tasks using \`/task [task name]\``
         };
         setMessages((prev) => [...prev, botMessage]);
+
+        // Refresh projects list
+        await fetchProjects();
 
         toast({
           title: "Project created",
@@ -131,33 +195,44 @@ export function ChatComponent() {
     }
   };
 
-  const handleTaskCreation = async (taskData: any) => {
+  const handleCreateTask = async () => {
+    if (!pendingTaskTitle || !selectedProject) return;
+
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/tasks/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData),
-      });
+      const { data, error } = await supabase.from("tasks").insert({
+        title: pendingTaskTitle,
+        description: taskDescription.trim() || null,
+        priority: taskPriority,
+        due_date: taskDueDate ? taskDueDate.toISOString() : null,
+        project_id: selectedProject.id,
+        status: "todo"
+      }).select().single();
 
-      if (!response.ok) throw new Error('Failed to create task');
+      if (error) throw error;
 
-      const data = await response.json();
-
-      // Remove the form message and add success message
+      // Remove project selector and add confirmation
       setMessages((prev) => {
-        const filtered = prev.filter(msg => msg.formType !== 'task-creation');
+        const filtered = prev.filter(msg => !msg.showProjectSelector);
         return [
           ...filtered,
           {
             role: 'bot',
-            content: `✅ **Task created successfully!**\\n\\nTask: **${data.task.title}**\\nPriority: ${data.task.priority}\\nStatus: ${data.task.status}`
+            content: `✅ **Task created successfully!**\\n\\nTask: **${data.title}**\\nProject: **${selectedProject.name}**\\nPriority: ${data.priority}\\nStatus: ${data.status}`
           }
         ];
       });
 
+      // Reset state
+      setPendingTaskTitle(null);
+      setSelectedProject(null);
+      setTaskDescription("");
+      setTaskPriority("medium");
+      setTaskDueDate(undefined);
+
       toast({
         title: "Task created",
-        description: `${data.task.title} has been created successfully.`,
+        description: `${data.title} has been created in ${selectedProject.name}.`,
       });
     } catch (error) {
       console.error("Task creation error:", error);
@@ -166,11 +241,18 @@ export function ChatComponent() {
         description: "Failed to create task. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleCancelForm = () => {
-    setMessages((prev) => prev.filter(msg => msg.formType !== 'task-creation'));
+  const handleCancelTaskCreation = () => {
+    setMessages((prev) => prev.filter(msg => !msg.showProjectSelector));
+    setPendingTaskTitle(null);
+    setSelectedProject(null);
+    setTaskDescription("");
+    setTaskPriority("medium");
+    setTaskDueDate(undefined);
   };
 
   return (
@@ -182,16 +264,141 @@ export function ChatComponent() {
         <div className="space-y-4 h-96 overflow-y-auto p-4 border rounded-md">
           {messages.map((msg, index) => (
             <div key={index}>
-              {msg.role === 'form' && msg.formType === 'task-creation' ? (
-                <TaskCreationForm
-                  initialTaskName={msg.formData.initialTaskName}
-                  onSubmit={handleTaskCreation}
-                  onCancel={handleCancelForm}
-                />
+              {msg.showProjectSelector ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  {/* System Message */}
+                  <div className="flex justify-start">
+                    <div className="prose dark:prose-invert px-4 py-2 rounded-lg bg-muted max-w-md">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  </div>
+
+                  {/* Hacker UI Task Form */}
+                  <div className="border-2 border-foreground bg-background p-4 font-mono rounded-none">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-sm font-bold uppercase tracking-wider">Task Details</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancelTaskCreation}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Project Selection */}
+                    <div className="space-y-2 mb-4">
+                      <Label className="text-xs uppercase tracking-wide">Project *</Label>
+                      {isLoadingProjects ? (
+                        <div className="text-xs text-muted-foreground">Loading projects...</div>
+                      ) : projects.length === 0 ? (
+                        <div className="text-xs text-muted-foreground">No projects available. Create one first.</div>
+                      ) : (
+                        <div className="max-h-32 overflow-y-auto border border-foreground">
+                          {projects.map((project) => (
+                            <Button
+                              key={project.id}
+                              variant={selectedProject?.id === project.id ? "secondary" : "ghost"}
+                              className="w-full justify-start rounded-none border-b border-foreground last:border-b-0 font-mono text-xs"
+                              onClick={() => setSelectedProject(project)}
+                            >
+                              <div
+                                className="w-2 h-2 mr-2"
+                                style={{ backgroundColor: project.color }}
+                              />
+                              {project.name}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="task-desc" className="text-xs uppercase tracking-wide">Description</Label>
+                      <Textarea
+                        id="task-desc"
+                        value={taskDescription}
+                        onChange={(e) => setTaskDescription(e.target.value)}
+                        placeholder="Add task description..."
+                        className="font-mono text-xs rounded-none border-2"
+                        rows={3}
+                      />
+                    </div>
+
+                    {/* Priority */}
+                    <div className="space-y-2 mb-4">
+                      <Label htmlFor="task-priority" className="text-xs uppercase tracking-wide">Priority</Label>
+                      <Select value={taskPriority} onValueChange={setTaskPriority}>
+                        <SelectTrigger id="task-priority" className="font-mono text-xs rounded-none border-2">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="font-mono">
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Due Date */}
+                    <div className="space-y-2 mb-4">
+                      <Label className="text-xs uppercase tracking-wide">Due Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-mono text-xs rounded-none border-2",
+                              !taskDueDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-3 w-3" />
+                            {taskDueDate ? format(taskDueDate, "PPP") : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={taskDueDate}
+                            onSelect={setTaskDueDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelTaskCreation}
+                        className="flex-1 font-mono text-xs rounded-none border-2"
+                        disabled={isLoading}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleCreateTask}
+                        disabled={!selectedProject || isLoading}
+                        className="flex-1 font-mono text-xs rounded-none border-2"
+                      >
+                        {isLoading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                        Create Task
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
               ) : (
                 <div className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`prose dark:prose-invert px-4 py-2 rounded-lg max-w-xs md:max-w-md ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                    {msg.role === 'bot' ? (
+                    {msg.role === 'bot' || msg.role === 'system' ? (
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     ) : (
                       msg.content
@@ -201,7 +408,7 @@ export function ChatComponent() {
               )}
             </div>
           ))}
-          {isLoading && (
+          {isLoading && !pendingTaskTitle && (
             <div className="flex justify-start">
               <div className="px-4 py-2 rounded-lg bg-muted">Thinking...</div>
             </div>
@@ -211,7 +418,7 @@ export function ChatComponent() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Try: /create task Buy groceries"
+            placeholder="Try: /task Buy groceries or crear tarea Review docs"
             disabled={isLoading}
           />
           <Button type="submit" disabled={isLoading}>
