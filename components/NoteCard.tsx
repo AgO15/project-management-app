@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { LinkifiedText } from "@/components/LinkifiedText";
 
 interface Note {
   id: string;
@@ -49,7 +50,7 @@ export function NoteCard({ note, onNoteDeleted, onViewNote }: NoteCardProps) {
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-semibold">{note.title}</h3>
-          <p className="text-sm text-muted-foreground mt-2">{truncated}</p>
+          <LinkifiedText text={truncated} className="text-sm text-muted-foreground mt-2" />
           {isTooLong && (
             <button onClick={() => onViewNote(note)} className="text-sm text-blue-500 hover:underline mt-2">
               Show more
@@ -57,7 +58,7 @@ export function NoteCard({ note, onNoteDeleted, onViewNote }: NoteCardProps) {
           )}
         </div>
         <div className="flex gap-2">
-           <AlertDialog>
+          <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="sm">Delete</Button>
             </AlertDialogTrigger>

@@ -22,7 +22,8 @@ import {
   DrawerFooter,
   DrawerClose,
 } from "@/components/ui/drawer";
-import { ScrollArea } from "@/components/ui/scroll-area"; 
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { LinkifiedText } from "@/components/LinkifiedText";
 
 interface Note {
   id: string;
@@ -75,9 +76,7 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
               autoFocus
             />
           ) : (
-            <div className="whitespace-pre-wrap text-foreground break-words text-sm leading-relaxed">
-              {note.content}
-            </div>
+            <LinkifiedText text={note.content} className="whitespace-pre-wrap text-foreground break-words text-sm leading-relaxed" />
           )}
         </div>
       </ScrollArea>
@@ -113,10 +112,10 @@ export function TaskNoteDialog({ note, isOpen, onOpenChange, onUpdateNote }: Tas
           </DialogHeader>
 
           {Body}
-          
+
           {/* El footer ahora usa flex-shrink-0 y se posiciona correctamente */}
           <DialogFooter className="flex-shrink-0 border-t bg-muted/10 p-0">
-             {Footer}
+            {Footer}
           </DialogFooter>
         </DialogContent>
       </Dialog>

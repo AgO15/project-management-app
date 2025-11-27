@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils" // Asegúrate de importar cn
+import { LinkifiedText } from "@/components/LinkifiedText"
 
 interface TimeEntry {
   id: string
@@ -385,7 +386,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
 
                       <div className="space-y-3">
                         <Label htmlFor="manual-duration">Duration (minutes)</Label>
-                        
+
                         {/* 👇 AQUÍ ESTÁN LOS BOTONES DE SELECCIÓN RÁPIDA 👇 */}
                         <div className="flex gap-2 mb-2">
                           {timePresets.map((preset) => (
@@ -470,7 +471,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
                       ) : (
                         <div>
                           {entry.description && (
-                            <p className="text-sm font-medium text-foreground mb-1">{entry.description}</p>
+                            <LinkifiedText text={entry.description} className="text-sm font-medium text-foreground mb-1" />
                           )}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono">

@@ -10,7 +10,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { TaskNoteDialog } from "./TaskNoteDialog"; 
+import { TaskNoteDialog } from "./TaskNoteDialog";
+import { LinkifiedText } from "./LinkifiedText";
 
 interface Note {
   id: string;
@@ -51,7 +52,7 @@ export function TaskNotes({ taskId, projectId, notes }: TaskNotesProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      
+
       const { error } = await supabase.from("notes").insert({
         content: newNoteContent.trim(),
         title: `Nota de Tarea`,
@@ -111,23 +112,23 @@ export function TaskNotes({ taskId, projectId, notes }: TaskNotesProps) {
     <>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2 p-0 h-auto">
-                {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                <StickyNote className="h-4 w-4" />
-                <span className="text-sm">Notas</span>
-                {notes.length > 0 && (<Badge variant="secondary" className="text-xs">{notes.length}</Badge>)}
-            </Button>
+          <Button variant="ghost" size="sm" className="flex items-center gap-2 p-0 h-auto">
+            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <StickyNote className="h-4 w-4" />
+            <span className="text-sm">Notas</span>
+            {notes.length > 0 && (<Badge variant="secondary" className="text-xs">{notes.length}</Badge>)}
+          </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-3">
           <div className="space-y-3 pl-6">
             {!isCreating ? (<Button onClick={() => setIsCreating(true)} variant="outline" size="sm" className="flex items-center gap-2"><Plus className="h-3 w-3" />Añadir Nota</Button>) : (<Card><CardContent className="p-3"><Textarea value={newNoteContent} onChange={(e) => setNewNoteContent(e.target.value)} placeholder="Añade una nota para esta tarea..." rows={3} className="mb-2" /><div className="flex gap-2"><Button onClick={createNote} disabled={loading || !newNoteContent.trim()} size="sm"><Save className="h-3 w-3 mr-1" />Guardar</Button><Button onClick={() => { setIsCreating(false); setNewNoteContent(""); }} variant="outline" size="sm"><X className="h-3 w-3 mr-1" />Cancelar</Button></div></CardContent></Card>)}
-            
+
             {notes.map((note) => {
               const { truncatedText, isTruncated } = truncateText(note.content, 180);
               return (
                 <Card key={note.id} className="bg-muted/30">
                   <CardContent className="p-3">
-                    <p className="text-sm text-foreground whitespace-pre-wrap mb-2">{truncatedText}</p>
+                    <LinkifiedText text={truncatedText} className="text-sm text-foreground whitespace-pre-wrap mb-2" />
                     {isTruncated && (
                       <button
                         onClick={() => setSelectedNote(note)}
