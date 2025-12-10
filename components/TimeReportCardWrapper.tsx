@@ -12,52 +12,52 @@ import { Clock } from "lucide-react";
 import { createClient } from '@/lib/supabase/client'; // 
 // Importa tus componentes
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { DateRangePicker } from "@/components/ui/date-range-picker"; 
-import { TimeReportCard } from "@/components/TimeReportCard"; 
-import { TimeEntry } from "@/lib/types"; 
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { TimeReportCard } from "@/components/TimeReportCard";
+import { TimeEntry } from "@/lib/types";
 
 
 // --- Función de Fetch de Datos (Implementación con Supabase) ---
 const fetchTimeEntries = async (startDate: Date, endDate: Date): Promise<TimeEntry[]> => {
-    
+
     // 1. Inicializa el cliente de Supabase (del lado del cliente)
     const supabase = createClient();
-    
+
     // 2. Obtener la sesión (esto es asíncrono y maneja el almacenamiento de tokens)
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     const authToken = session?.access_token; // Este es el JWT que necesita el backend
 
     if (!authToken) {
         console.warn("ADVERTENCIA: Usuario no autenticado (Supabase). Devolviendo datos vacíos.");
-        return []; 
+        return [];
     }
 
     // Formatear fechas para la URL
     const startStr = startDate.toISOString().split('T')[0];
     const endStr = endDate.toISOString().split('T')[0];
-    
+
     const apiUrl = `/api/time-entries?startDate=${startStr}&endDate=${endStr}`;
-    
+
     try {
         const response = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 // 3. Envío del token JWT de Supabase
-                'Authorization': `Bearer ${authToken}`, 
+                'Authorization': `Bearer ${authToken}`,
             },
         });
 
         if (!response.ok) {
             console.error(`Error ${response.status} al obtener datos:`, response.statusText);
-            
+
             // Si el token falló, Supabase lo manejará, pero aquí podemos logear el error del API
             throw new Error(`Error ${response.status}: No se pudieron cargar las entradas.`);
         }
 
         const data: TimeEntry[] = await response.json();
-        return data; 
+        return data;
 
     } catch (error) {
         console.error("Fallo de red al obtener el informe de tiempo:", error);
@@ -71,7 +71,7 @@ export function TimeReportCardWrapper() {
         from: new Date(new Date().setDate(new Date().getDate() - 7)),
         to: new Date(),
     };
-    
+
     const [dateRange, setDateRange] = useState<DateRange | undefined>(initialDateRange);
     const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +80,7 @@ export function TimeReportCardWrapper() {
     useEffect(() => {
         if (dateRange?.from && dateRange?.to) {
             setIsLoading(true);
-            
+
             fetchTimeEntries(dateRange.from, dateRange.to)
                 .then(data => setTimeEntries(data))
                 .catch(error => {
@@ -89,7 +89,7 @@ export function TimeReportCardWrapper() {
                 })
                 .finally(() => setIsLoading(false));
         }
-    }, [dateRange]); 
+    }, [dateRange]);
 
     // Título dinámico para la Card
     const reportTitle = dateRange?.from && dateRange?.to
@@ -102,10 +102,10 @@ export function TimeReportCardWrapper() {
                 <CardTitle>{reportTitle}</CardTitle>
                 <div className="flex items-center space-x-2">
                     {/* Selector de fechas */}
-                    <DateRangePicker 
-                        date={dateRange} 
-                        setDate={setDateRange} 
-                        className="w-full sm:w-[240px]"
+                    <DateRangePicker
+                        date={dateRange}
+                        setDate={setDateRange}
+                        className="w-full sm:w-[280px]"
                     />
                     <Link href="/dashboard/reports" className="text-muted-foreground hover:text-primary">
                         <Clock className="h-5 w-5" />
@@ -114,9 +114,9 @@ export function TimeReportCardWrapper() {
             </CardHeader>
             <CardContent>
                 {/* Pasa los datos al componente de visualización */}
-                <TimeReportCard 
-                    timeEntries={timeEntries} 
-                    reportTitle={reportTitle} 
+                <TimeReportCard
+                    timeEntries={timeEntries}
+                    reportTitle={reportTitle}
                     isLoading={isLoading}
                 />
             </CardContent>
