@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { MoreHorizontal, Calendar, Clock, AlertCircle, CheckCircle2, Circle, Play } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { MoreHorizontal, Calendar, Clock, AlertCircle, CheckCircle2, Circle, Play, Pencil } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -14,6 +13,8 @@ import { useToast } from "@/hooks/use-toast"
 import { TaskNotes } from "@/components/task-notes"
 import { TaskFiles } from "@/components/task-files"
 import { TimeTracker } from "@/components/time-tracker"
+import { EditTaskDialog } from "@/components/edit-task-dialog"
+import { cn } from "@/lib/utils"
 
 interface Task {
   id: string
@@ -38,10 +39,21 @@ const STATUS_ICONS = {
   completed: CheckCircle2,
 }
 
-const PRIORITY_COLORS = {
-  low: "text-green-600",
-  medium: "text-yellow-600",
-  high: "text-red-600",
+const PRIORITY_CONFIG = {
+  low: { color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+  medium: { color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
+  high: { color: "text-red-500", bg: "bg-red-50", border: "border-red-200" },
+}
+
+// Neumorphic styles
+const neuCardStyle = {
+  backgroundColor: '#E0E5EC',
+  boxShadow: '6px 6px 12px rgba(163, 177, 198, 0.5), -6px -6px 12px rgba(255, 255, 255, 0.6)',
+}
+
+const neuInsetStyle = {
+  backgroundColor: '#E0E5EC',
+  boxShadow: 'inset 2px 2px 4px rgba(163, 177, 198, 0.4), inset -2px -2px 4px rgba(255, 255, 255, 0.7)',
 }
 
 export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
@@ -50,6 +62,8 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({})
+
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   const [taskNotes, setTaskNotes] = useState<Record<string, any[]>>({})
   const [taskFiles, setTaskFiles] = useState<Record<string, any[]>>({})
@@ -62,7 +76,6 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
       const supabase = createClient()
       const taskIds = tasks.map((task) => task.id)
 
-      // Fetch notes
       const { data: notes } = await supabase
         .from("notes")
         .select("*")
@@ -78,11 +91,9 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           },
           {} as Record<string, any[]>,
         )
-
         setTaskNotes(notesByTask)
       }
 
-      // Fetch files
       const { data: files } = await supabase
         .from("files")
         .select("*")
@@ -98,11 +109,9 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           },
           {} as Record<string, any[]>,
         )
-
         setTaskFiles(filesByTask)
       }
 
-      // Fetch time entries
       const { data: timeEntries } = await supabase
         .from("time_entries")
         .select("*")
@@ -118,7 +127,6 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           },
           {} as Record<string, any[]>,
         )
-
         setTaskTimeEntries(entriesByTask)
       }
     }
@@ -161,15 +169,15 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
       if (error) throw error
 
       toast({
-        title: "Task updated",
-        description: "Task status has been updated successfully.",
+        title: "Tarea actualizada",
+        description: "El estado de la tarea ha sido actualizado.",
       })
 
       router.refresh()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update task status.",
+        description: "No se pudo actualizar el estado de la tarea.",
         variant: "destructive",
       })
     }
@@ -184,15 +192,15 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
       if (error) throw error
 
       toast({
-        title: "Task deleted",
-        description: "Task has been deleted successfully.",
+        title: "Tarea eliminada",
+        description: "La tarea ha sido eliminada correctamente.",
       })
 
       router.refresh()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete task.",
+        description: "No se pudo eliminar la tarea.",
         variant: "destructive",
       })
     }
@@ -200,12 +208,21 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-          <CheckCircle2 className="h-8 w-8 text-muted-foreground" />
+      <div
+        className="text-center py-12 rounded-3xl"
+        style={neuCardStyle}
+      >
+        <div
+          className="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center mb-4"
+          style={{
+            background: 'linear-gradient(145deg, #7C9EBC, #A78BFA)',
+            boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.4)'
+          }}
+        >
+          <CheckCircle2 className="h-10 w-10 text-white" />
         </div>
-        <h3 className="text-lg font-medium text-foreground mb-2">No tasks yet</h3>
-        <p className="text-muted-foreground mb-4">Create your first task to start organizing your work</p>
+        <h3 className="text-lg font-semibold text-[#444444] mb-2">Sin tareas aún</h3>
+        <p className="text-[#888888] mb-4">Crea tu primera tarea para comenzar a organizar tu trabajo</p>
       </div>
     )
   }
@@ -218,170 +235,236 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           {createButton}
         </div>
       )}
+
       {/* Filters and Sorting */}
       <div className="w-full flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="w-full max-w-md grid grid-cols-2 gap-3">
-          <div>
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-full h-11 text-base">
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tasks</SelectItem>
-                <SelectItem value="todo">To Do</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full h-11 text-base">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at">Created Date</SelectItem>
-                <SelectItem value="priority">Priority</SelectItem>
-                <SelectItem value="due_date">Due Date</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger
+              className="w-full h-11 text-base rounded-xl border-0 text-[#444444]"
+              style={neuInsetStyle}
+            >
+              <SelectValue placeholder="Filtrar" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-0" style={{ backgroundColor: '#F0F0F3' }}>
+              <SelectItem value="all" className="rounded-lg">Todas</SelectItem>
+              <SelectItem value="todo" className="rounded-lg">Por hacer</SelectItem>
+              <SelectItem value="in_progress" className="rounded-lg">En progreso</SelectItem>
+              <SelectItem value="completed" className="rounded-lg">Completadas</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger
+              className="w-full h-11 text-base rounded-xl border-0 text-[#444444]"
+              style={neuInsetStyle}
+            >
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-0" style={{ backgroundColor: '#F0F0F3' }}>
+              <SelectItem value="created_at" className="rounded-lg">Fecha creación</SelectItem>
+              <SelectItem value="priority" className="rounded-lg">Prioridad</SelectItem>
+              <SelectItem value="due_date" className="rounded-lg">Fecha límite</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="text-sm text-muted-foreground">
-          {filteredTasks.length} of {tasks.length} tasks
+        <div className="text-sm text-[#888888]">
+          {filteredTasks.length} de {tasks.length} tareas
         </div>
       </div>
 
       {/* Task List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {sortedTasks.map((task) => {
           const StatusIcon = STATUS_ICONS[task.status as keyof typeof STATUS_ICONS]
+          const priorityConfig = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG]
           const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "completed"
+          const showDueDate = sortBy !== "created_at"
 
-          const showDueDate = sortBy !== "created_at" // for 'due_date' and 'priority' show due date
           return (
-            <Card key={task.id} className="hover:shadow-sm transition-shadow border border-border">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-start gap-3">
-                  
-                  {/* 👇 ESTA ES LA LÍNEA QUE CAMBIAMOS 👇 */}
-                  <Checkbox
-                    checked={task.status === "completed"}
-                    onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? "completed" : "todo")}
-                    className="mt-1 h-5 w-5 bg-background border-2 border-muted-foreground hover:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                  />
+            <div
+              key={task.id}
+              className="rounded-2xl p-4 sm:p-5 transition-all hover:scale-[1.01]"
+              style={neuCardStyle}
+            >
+              <div className="flex items-start gap-4">
+                {/* Checkbox */}
+                <div
+                  className="flex items-center justify-center w-6 h-6 rounded-lg mt-1 cursor-pointer"
+                  style={task.status === "completed" ? {
+                    background: 'linear-gradient(145deg, #34D399, #10B981)',
+                    boxShadow: '2px 2px 4px rgba(163, 177, 198, 0.3), -2px -2px 4px rgba(255, 255, 255, 0.4)'
+                  } : neuInsetStyle}
+                  onClick={() => updateTaskStatus(task.id, task.status === "completed" ? "todo" : "completed")}
+                >
+                  {task.status === "completed" && <CheckCircle2 className="h-4 w-4 text-white" />}
+                </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <h3
-                          className={`font-medium text-base sm:text-lg ${task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"}`}
-                        >
-                          {task.title}
-                        </h3>
-                        {task.description && (
-                          (() => {
-                            const isExpanded = !!expandedDescriptions[task.id]
-                            const maxLen = 140
-                            const text = task.description
-                            const shouldTruncate = text.length > maxLen && !isExpanded
-                            const displayed = shouldTruncate ? `${text.slice(0, maxLen)}...` : text
-                            return (
-                              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
-                                {displayed}
-                                {shouldTruncate ? (
-                                  <button
-                                    className="ml-1 underline text-primary" // Cambiado a text-primary (verde neón)
-                                    onClick={() => setExpandedDescriptions({ ...expandedDescriptions, [task.id]: true })}
-                                  >
-                                    View more
-                                  </button>
-                                ) : null}
-                              </p>
-                            )
-                          })()
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className={cn(
+                          "font-medium text-base sm:text-lg break-words",
+                          task.status === "completed"
+                            ? "line-through text-[#aaa]"
+                            : "text-[#444444]"
                         )}
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" aria-label="Task actions">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => updateTaskStatus(task.id, "todo")}
-                            disabled={task.status === "todo"}
-                          >
-                            Mark as To Do
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => updateTaskStatus(task.id, "in_progress")}
-                            disabled={task.status === "in_progress"}
-                          >
-                            Mark as In Progress
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => updateTaskStatus(task.id, "completed")}
-                            disabled={task.status === "completed"}
-                          >
-                            Mark as Completed
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => deleteTask(task.id)} className="text-destructive">
-                            Delete Task
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 mt-3">
-                      <div className="flex items-center gap-1">
-                        <StatusIcon className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {task.status.replace("_", " ")}
-                        </span>
-                      </div>
-
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${PRIORITY_COLORS[task.priority as keyof typeof PRIORITY_COLORS]}`}
                       >
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        {task.priority}
-                      </Badge>
-
-                      {showDueDate ? (
-                        task.due_date && (
-                          <div
-                            className={`flex items-center gap-1 text-xs ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
-                          >
-                            <Calendar className="h-3 w-3" />
-                            {new Date(task.due_date).toLocaleDateString()}
-                            {isOverdue && <span className="font-medium">(Overdue)</span>}
-                          </div>
-                        )
-                      ) : (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {new Date(task.created_at).toLocaleDateString()}
-                        </div>
+                        {task.title}
+                      </h3>
+                      {task.description && (
+                        (() => {
+                          const isExpanded = !!expandedDescriptions[task.id]
+                          const maxLen = 140
+                          const text = task.description
+                          const shouldTruncate = text.length > maxLen && !isExpanded
+                          const displayed = shouldTruncate ? `${text.slice(0, maxLen)}...` : text
+                          return (
+                            <p className="text-sm text-[#888888] mt-1 whitespace-pre-wrap">
+                              {displayed}
+                              {shouldTruncate ? (
+                                <button
+                                  className="ml-1 underline text-[#7C9EBC] hover:text-[#5A7C9A]"
+                                  onClick={() => setExpandedDescriptions({ ...expandedDescriptions, [task.id]: true })}
+                                >
+                                  Ver más
+                                </button>
+                              ) : null}
+                            </p>
+                          )
+                        })()
                       )}
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-border space-y-3">
-                      <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
-                      <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} projectId={projectId} />
-                      <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label="Acciones"
+                          className="rounded-xl text-[#888] hover:text-[#444] hover:bg-[#F0F0F3]"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="rounded-xl border-0"
+                        style={{ backgroundColor: '#F0F0F3', boxShadow: '8px 8px 16px rgba(163, 177, 198, 0.5), -8px -8px 16px rgba(255, 255, 255, 0.5)' }}
+                      >
+                        <DropdownMenuItem
+                          onClick={() => setEditingTask(task)}
+                          className="flex items-center gap-2 rounded-lg"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-[rgba(163,177,198,0.3)]" />
+                        <DropdownMenuItem
+                          onClick={() => updateTaskStatus(task.id, "todo")}
+                          disabled={task.status === "todo"}
+                          className="rounded-lg"
+                        >
+                          Marcar como Por hacer
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => updateTaskStatus(task.id, "in_progress")}
+                          disabled={task.status === "in_progress"}
+                          className="rounded-lg"
+                        >
+                          Marcar como En progreso
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => updateTaskStatus(task.id, "completed")}
+                          disabled={task.status === "completed"}
+                          className="rounded-lg"
+                        >
+                          Marcar como Completada
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-[rgba(163,177,198,0.3)]" />
+                        <DropdownMenuItem
+                          onClick={() => deleteTask(task.id)}
+                          className="text-red-500 rounded-lg"
+                        >
+                          Eliminar tarea
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {/* Meta info */}
+                  <div className="flex flex-wrap items-center gap-3 mt-3">
+                    <div
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs"
+                      style={neuInsetStyle}
+                    >
+                      <StatusIcon className="h-3.5 w-3.5 text-[#7C9EBC]" />
+                      <span className="text-[#666] capitalize">
+                        {task.status === "todo" ? "Por hacer" : task.status === "in_progress" ? "En progreso" : "Completada"}
+                      </span>
                     </div>
+
+                    <div
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border",
+                        priorityConfig?.bg,
+                        priorityConfig?.border,
+                        priorityConfig?.color
+                      )}
+                    >
+                      <AlertCircle className="h-3 w-3" />
+                      {task.priority === "low" ? "Baja" : task.priority === "medium" ? "Media" : "Alta"}
+                    </div>
+
+                    {showDueDate ? (
+                      task.due_date && (
+                        <div
+                          className={cn(
+                            "flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg",
+                            isOverdue ? "bg-red-50 text-red-500 border border-red-200" : ""
+                          )}
+                          style={!isOverdue ? neuInsetStyle : undefined}
+                        >
+                          <Calendar className="h-3 w-3" />
+                          <span className={!isOverdue ? "text-[#666]" : ""}>
+                            {new Date(task.due_date).toLocaleDateString()}
+                          </span>
+                          {isOverdue && <span className="font-medium">(Vencida)</span>}
+                        </div>
+                      )
+                    ) : (
+                      <div
+                        className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg"
+                        style={neuInsetStyle}
+                      >
+                        <Clock className="h-3 w-3 text-[#7C9EBC]" />
+                        <span className="text-[#666]">{new Date(task.created_at).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Expandable sections */}
+                  <div className="mt-4 pt-4 border-t border-[rgba(163,177,198,0.3)] space-y-3">
+                    <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
+                    <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} projectId={projectId} />
+                    <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )
         })}
       </div>
+
+      {/* Edit Task Dialog */}
+      {editingTask && (
+        <EditTaskDialog
+          task={editingTask}
+          open={!!editingTask}
+          onOpenChange={(open) => !open && setEditingTask(null)}
+        />
+      )}
     </div>
   )
 }

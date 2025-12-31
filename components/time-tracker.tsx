@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -21,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { cn } from "@/lib/utils" // Asegúrate de importar cn
+import { cn } from "@/lib/utils"
 import { LinkifiedText } from "@/components/LinkifiedText"
 
 interface TimeEntry {
@@ -36,6 +35,17 @@ interface TimeEntry {
 interface TimeTrackerProps {
   taskId: string
   timeEntries: TimeEntry[]
+}
+
+// Neumorphic styles
+const neuCardStyle = {
+  backgroundColor: '#F0F0F3',
+  boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.4), -4px -4px 8px rgba(255, 255, 255, 0.6)',
+}
+
+const neuInsetStyle = {
+  backgroundColor: '#E0E5EC',
+  boxShadow: 'inset 2px 2px 4px rgba(163, 177, 198, 0.4), inset -2px -2px 4px rgba(255, 255, 255, 0.7)',
 }
 
 const formatDuration = (minutes: number | null) => {
@@ -70,7 +80,6 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Check for active timer on mount
   useEffect(() => {
     const activeEntry = timeEntries.find((entry) => !entry.end_time)
     if (activeEntry) {
@@ -81,7 +90,6 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     }
   }, [timeEntries])
 
-  // Update elapsed time when running
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (isRunning && currentEntry) {
@@ -98,9 +106,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     const supabase = createClient()
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
 
       const { data, error } = await supabase
@@ -120,18 +126,10 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
       setIsRunning(true)
       setElapsedTime(0)
 
-      toast({
-        title: "Timer started",
-        description: "Time tracking has begun for this task.",
-      })
-
+      toast({ title: "Timer iniciado", description: "El seguimiento de tiempo ha comenzado." })
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to start timer. Please try again.",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "No se pudo iniciar el timer.", variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -146,9 +144,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     try {
       const { error } = await supabase
         .from("time_entries")
-        .update({
-          end_time: new Date().toISOString(),
-        })
+        .update({ end_time: new Date().toISOString() })
         .eq("id", currentEntry.id)
 
       if (error) throw error
@@ -157,18 +153,10 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
       setIsRunning(false)
       setElapsedTime(0)
 
-      toast({
-        title: "Timer stopped",
-        description: "Time entry has been saved successfully.",
-      })
-
+      toast({ title: "Timer detenido", description: "El registro de tiempo ha sido guardado." })
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to stop timer. Please try again.",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "No se pudo detener el timer.", variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -181,14 +169,12 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     const supabase = createClient()
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
 
       const durationMinutes = Number.parseInt(manualDuration)
       if (isNaN(durationMinutes) || durationMinutes <= 0) {
-        throw new Error("Please enter a valid duration in minutes")
+        throw new Error("Ingresa una duración válida en minutos")
       }
 
       const now = new Date()
@@ -204,10 +190,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
 
       if (error) throw error
 
-      toast({
-        title: "Time entry added",
-        description: "Manual time entry has been saved successfully.",
-      })
+      toast({ title: "Tiempo añadido", description: "El registro manual ha sido guardado." })
 
       setManualDescription("")
       setManualDuration("")
@@ -216,7 +199,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add time entry",
+        description: error instanceof Error ? error.message : "No se pudo añadir el registro",
         variant: "destructive",
       })
     } finally {
@@ -233,7 +216,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     try {
       const durationMinutes = Number.parseInt(editDuration)
       if (isNaN(durationMinutes) || durationMinutes <= 0) {
-        throw new Error("Please enter a valid duration in minutes")
+        throw new Error("Ingresa una duración válida")
       }
 
       const { error } = await supabase
@@ -246,21 +229,14 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
 
       if (error) throw error
 
-      toast({
-        title: "Time entry updated",
-        description: "Time entry has been updated successfully.",
-      })
+      toast({ title: "Registro actualizado", description: "El tiempo ha sido actualizado." })
 
       setEditingId(null)
       setEditDescription("")
       setEditDuration("")
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update time entry. Please try again.",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "No se pudo actualizar el registro.", variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -275,18 +251,10 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
 
       if (error) throw error
 
-      toast({
-        title: "Time entry deleted",
-        description: "Time entry has been deleted successfully.",
-      })
-
+      toast({ title: "Registro eliminado", description: "El tiempo ha sido eliminado." })
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete time entry. Please try again.",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "No se pudo eliminar el registro.", variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -315,8 +283,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
-  // Quick time presets
-  const timePresets = [30, 45, 60];
+  const timePresets = [30, 45, 60]
 
   return (
     <div className="space-y-3">
@@ -324,19 +291,39 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
       <div className="flex items-center gap-2">
         {isRunning ? (
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-primary text-primary animate-pulse bg-primary/10 font-mono text-sm">
-              <Clock className="h-3 w-3 mr-2" />
+            <div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl font-mono text-sm text-emerald-600 animate-pulse"
+              style={{
+                backgroundColor: '#D1FAE5',
+                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.3), -3px -3px 6px rgba(255, 255, 255, 0.5)'
+              }}
+            >
+              <Clock className="h-3 w-3" />
               {formatElapsedTime(elapsedTime)}
-            </Badge>
-            <Button onClick={stopTimer} disabled={loading} size="sm" variant="destructive" className="hover:bg-destructive/80">
+            </div>
+            <Button
+              onClick={stopTimer}
+              disabled={loading}
+              size="sm"
+              className="rounded-xl bg-red-500 hover:bg-red-600 text-white border-0"
+            >
               <Square className="h-3 w-3 mr-1" />
-              Stop
+              Detener
             </Button>
           </div>
         ) : (
-          <Button onClick={() => startTimer()} disabled={loading} size="sm" className="flex items-center gap-2">
+          <Button
+            onClick={() => startTimer()}
+            disabled={loading}
+            size="sm"
+            className="flex items-center gap-2 rounded-xl text-white border-0"
+            style={{
+              background: 'linear-gradient(145deg, #34D399, #10B981)',
+              boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.4)'
+            }}
+          >
             <Play className="h-3 w-3" />
-            Start Timer
+            Iniciar Timer
           </Button>
         )}
       </div>
@@ -344,13 +331,20 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
       {/* Time Entries Collapsible */}
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="flex items-center gap-2 p-0 h-auto hover:bg-transparent hover:text-primary">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 p-0 h-auto hover:bg-transparent text-[#666] hover:text-[#444]"
+          >
             {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            <Clock className="h-4 w-4" />
+            <Clock className="h-4 w-4 text-[#7C9EBC]" />
             <span className="text-sm">Time Entries</span>
-            <Badge variant="secondary" className="text-xs ml-1 font-mono">
+            <span
+              className="text-xs px-2 py-0.5 rounded-lg font-mono"
+              style={neuInsetStyle}
+            >
               {formatDuration(totalMinutes)}
-            </Badge>
+            </span>
           </Button>
         </CollapsibleTrigger>
 
@@ -360,34 +354,42 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
             <div className="flex items-center gap-2">
               <Dialog open={showManualEntry} onOpenChange={setShowManualEntry}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent border-dashed border-muted-foreground/50 text-muted-foreground hover:text-primary hover:border-primary">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2 text-[#888] hover:text-[#7C9EBC] rounded-xl border border-dashed border-[rgba(163,177,198,0.5)]"
+                  >
                     <Plus className="h-3 w-3" />
-                    Add Manual Time
+                    Añadir tiempo manual
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md sm:max-h-[90vh] flex flex-col overflow-hidden">
-                  <DialogHeader className="flex-shrink-0">
-                    <DialogTitle>Add Manual Time Entry</DialogTitle>
-                    <DialogDescription>Add time that was spent on this task but not tracked.</DialogDescription>
+                <DialogContent
+                  className="sm:max-w-md flex flex-col overflow-hidden rounded-3xl border-0 p-0"
+                  style={{ backgroundColor: '#E0E5EC', boxShadow: '20px 20px 40px rgba(163, 177, 198, 0.7), -20px -20px 40px rgba(255, 255, 255, 0.6)' }}
+                >
+                  <DialogHeader className="p-5 pb-3">
+                    <DialogTitle className="text-[#444444]">Añadir tiempo manual</DialogTitle>
+                    <DialogDescription className="text-[#888888]">
+                      Añade tiempo que no fue registrado automáticamente.
+                    </DialogDescription>
                   </DialogHeader>
 
-                  <ScrollArea className="flex-1 px-1">
-                    <div className="space-y-4 pr-4">
+                  <ScrollArea className="flex-1 px-5">
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="manual-description">Description (Optional)</Label>
+                        <Label className="text-[#444444] text-sm">Descripción (Opcional)</Label>
                         <Textarea
-                          id="manual-description"
                           value={manualDescription}
                           onChange={(e) => setManualDescription(e.target.value)}
-                          placeholder="What did you work on?"
+                          placeholder="¿En qué trabajaste?"
                           rows={2}
+                          className="rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] resize-none"
+                          style={neuInsetStyle}
                         />
                       </div>
 
                       <div className="space-y-3">
-                        <Label htmlFor="manual-duration">Duration (minutes)</Label>
-
-                        {/* 👇 AQUÍ ESTÁN LOS BOTONES DE SELECCIÓN RÁPIDA 👇 */}
+                        <Label className="text-[#444444] text-sm">Duración (minutos)</Label>
                         <div className="flex gap-2 mb-2">
                           {timePresets.map((preset) => (
                             <button
@@ -395,35 +397,51 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
                               type="button"
                               onClick={() => setManualDuration(preset.toString())}
                               className={cn(
-                                "px-3 py-1 text-xs font-medium rounded-md border transition-colors",
+                                "px-3 py-1.5 text-xs font-medium rounded-xl transition-all",
                                 manualDuration === preset.toString()
-                                  ? "bg-primary text-primary-foreground border-primary"
-                                  : "bg-transparent border-input text-muted-foreground hover:border-primary hover:text-primary"
+                                  ? "text-white"
+                                  : "text-[#666]"
                               )}
+                              style={manualDuration === preset.toString() ? {
+                                background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
+                                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.4)'
+                              } : neuInsetStyle}
                             >
                               {preset}m
                             </button>
                           ))}
                         </div>
-
                         <Input
-                          id="manual-duration"
                           type="number"
                           value={manualDuration}
                           onChange={(e) => setManualDuration(e.target.value)}
                           placeholder="60"
                           min="1"
+                          className="h-11 rounded-xl border-0 text-[#444444] placeholder:text-[#aaa]"
+                          style={neuInsetStyle}
                         />
                       </div>
                     </div>
                   </ScrollArea>
 
-                  <div className="flex gap-3 flex-shrink-0 pt-4">
-                    <Button onClick={() => setShowManualEntry(false)} variant="outline" className="flex-1">
-                      Cancel
+                  <div className="flex gap-3 p-5 pt-3">
+                    <Button
+                      onClick={() => setShowManualEntry(false)}
+                      variant="ghost"
+                      className="flex-1 h-11 rounded-xl text-[#888] hover:text-[#444] hover:bg-[#F0F0F3]"
+                    >
+                      Cancelar
                     </Button>
-                    <Button onClick={addManualEntry} disabled={loading || !manualDuration.trim()} className="flex-1">
-                      Add Entry
+                    <Button
+                      onClick={addManualEntry}
+                      disabled={loading || !manualDuration.trim()}
+                      className="flex-1 h-11 rounded-xl text-white border-0"
+                      style={{
+                        background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
+                        boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.4)'
+                      }}
+                    >
+                      Añadir
                     </Button>
                   </div>
                 </DialogContent>
@@ -432,82 +450,95 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
 
             {/* Time Entries List */}
             {timeEntries.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">No time entries yet</p>
+              <p className="text-sm text-[#888888] italic">Sin registros de tiempo</p>
             ) : (
               <div className="space-y-2">
                 {timeEntries.map((entry) => (
-                  <Card key={entry.id} className="bg-muted/10 border border-border/50">
-                    <CardContent className="p-3">
-                      {editingId === entry.id ? (
-                        <div className="space-y-3">
-                          <Textarea
-                            value={editDescription}
-                            onChange={(e) => setEditDescription(e.target.value)}
-                            placeholder="Description (optional)"
-                            rows={2}
-                          />
-                          <Input
-                            type="number"
-                            value={editDuration}
-                            onChange={(e) => setEditDuration(e.target.value)}
-                            placeholder="Duration in minutes"
-                            min="1"
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => updateTimeEntry(entry.id)}
-                              disabled={loading || !editDuration.trim()}
-                              size="sm"
+                  <div
+                    key={entry.id}
+                    className="p-3 rounded-xl"
+                    style={neuCardStyle}
+                  >
+                    {editingId === entry.id ? (
+                      <div className="space-y-3">
+                        <Textarea
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          placeholder="Descripción (opcional)"
+                          rows={2}
+                          className="rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] resize-none"
+                          style={neuInsetStyle}
+                        />
+                        <Input
+                          type="number"
+                          value={editDuration}
+                          onChange={(e) => setEditDuration(e.target.value)}
+                          placeholder="Duración en minutos"
+                          min="1"
+                          className="h-10 rounded-xl border-0 text-[#444444] placeholder:text-[#aaa]"
+                          style={neuInsetStyle}
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => updateTimeEntry(entry.id)}
+                            disabled={loading || !editDuration.trim()}
+                            size="sm"
+                            className="rounded-xl text-white border-0"
+                            style={{
+                              background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
+                            }}
+                          >
+                            <Save className="h-3 w-3 mr-1" />
+                            Guardar
+                          </Button>
+                          <Button onClick={cancelEdit} variant="ghost" size="sm" className="rounded-xl text-[#888]">
+                            <X className="h-3 w-3 mr-1" />
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        {entry.description && (
+                          <LinkifiedText text={entry.description} className="text-sm font-medium text-[#444444] mb-1" />
+                        )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 text-xs text-[#888888] font-mono">
+                            <span>
+                              {formatTime(entry.start_time)}
+                              {entry.end_time && ` - ${formatTime(entry.end_time)}`}
+                            </span>
+                            <span
+                              className="px-2 py-0.5 rounded-lg"
+                              style={neuInsetStyle}
                             >
-                              <Save className="h-3 w-3 mr-1" />
-                              Save
-                            </Button>
-                            <Button onClick={cancelEdit} variant="outline" size="sm">
-                              <X className="h-3 w-3 mr-1" />
-                              Cancel
-                            </Button>
+                              {entry.end_time ? formatDuration(entry.duration_minutes) : "Activo"}
+                            </span>
                           </div>
-                        </div>
-                      ) : (
-                        <div>
-                          {entry.description && (
-                            <LinkifiedText text={entry.description} className="text-sm font-medium text-foreground mb-1" />
-                          )}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono">
-                              <span>
-                                {formatTime(entry.start_time)}
-                                {entry.end_time && ` - ${formatTime(entry.end_time)}`}
-                              </span>
-                              <Badge variant="outline" className="text-xs border-muted-foreground/30 text-muted-foreground">
-                                {entry.end_time ? formatDuration(entry.duration_minutes) : "Running"}
-                              </Badge>
+                          {entry.end_time && (
+                            <div className="flex gap-1">
+                              <Button
+                                onClick={() => startEdit(entry)}
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 rounded-lg text-[#888] hover:text-[#7C9EBC]"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                onClick={() => deleteTimeEntry(entry.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 rounded-lg text-red-400 hover:text-red-500"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
-                            {entry.end_time && (
-                              <div className="flex gap-1">
-                                <Button
-                                  onClick={() => startEdit(entry)}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 hover:text-primary"
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  onClick={() => deleteTimeEntry(entry.id)}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-destructive hover:text-destructive/80"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

@@ -1,29 +1,31 @@
 import type { Metadata } from 'next'
-import { Roboto_Mono } from 'next/font/google' // 1. Importar Roboto Mono
+import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { AuthListener } from '@/components/AuthListener'
+import { LanguageProvider } from '@/contexts/LanguageContext'
 import './globals.css'
 
-// 2. Instanciar la fuente (eliminamos Geist y Rubik)
-const robotoMono = Roboto_Mono({
+// Modern sans-serif font for Neumorphic UI
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-roboto-mono', // 3. Asignar el nombre de la variable
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-inter',
 })
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Cognitive Manager',
+  description: 'Gestión de proyectos con enfoque cognitivo',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark"> {/* Opcional: forzar dark mode */}
-      {/* 4. Aplicar la variable al body */}
-      <body className={`font-mono ${robotoMono.variable}`}>
+    <html lang="es" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <AuthListener />
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
         <Analytics />
         <SpeedInsights />
       </body>

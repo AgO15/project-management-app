@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { TaskList } from "@/components/task-list"
-import { CreateTaskDialog } from "@/components/create-task-dialog"
+import { IfThenTaskDialog, ProjectCognitiveSettings } from "@/components/cognitive"
 import { ProjectHeader } from "@/components/project-header"
 import { ProjectNotes } from "@/components/project-notes"
 import { FileUpload } from "@/components/file-upload"
@@ -25,7 +25,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     redirect("/auth/login")
   }
 
-  // Tu lógica para obtener datos de la base de datos (sin cambios)
+  // Obtener datos del proyecto
   const { data: project } = await supabase
     .from("projects")
     .select("*")
@@ -35,6 +35,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   if (!project) {
     redirect("/dashboard")
+  }
+
+  // Obtener TODOS los proyectos del usuario para validación de capacidad
+  const { data: allProjects } = await supabase
+    .from("projects")
+    .select("id, name, cycle_state")
+    .eq("user_id", data.user.id)
+
+  // Obtener el área relacionada si existe
+  let projectArea = null
+  if (project.area_id) {
+    const { data: area } = await supabase
+      .from("areas")
+      .select("id, name, vision_statement")
+      .eq("id", project.area_id)
+      .single()
+    projectArea = area
   }
 
   const { data: tasks } = await supabase
@@ -71,33 +88,37 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </Link>
               <ProjectHeader project={project} />
             </div>
-            {/* --- CAMBIO 1: El botón "New Task" se ha quitado de aquí --- */}
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4"> {/* Reducido el espacio para un mejor ajuste */}
-            
-            {/* --- CAMBIO 2: El botón "New Task" ahora está aquí --- */}
-            <CreateTaskDialog projectId={id}>
-              {/* La clase "w-full" lo hace extenderse de extremo a extremo */}
-              <Button className="w-full py-3 text-base flex items-center justify-center gap-2">
+          <div className="lg:col-span-2 space-y-4">
+
+            {/* Botón de nueva intención Si-Entonces */}
+            <IfThenTaskDialog projectId={id} projectRepresentation={project.representation}>
+              <Button className="w-full py-3 text-base flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-black font-mono">
                 <Plus className="h-4 w-4" />
-                New Task
+                Nueva Intención Si-Entonces
               </Button>
-            </CreateTaskDialog>
-            {/* -------------------------------------------------------- */}
+            </IfThenTaskDialog>
 
             <TaskList
               tasks={tasks || []}
               projectId={id}
             />
-            
+
           </div>
 
           <div className="space-y-6">
+            {/* Cognitive Settings Card - with capacity validation */}
+            <ProjectCognitiveSettings
+              project={project}
+              initialArea={projectArea}
+              allProjects={allProjects || []}
+            />
+
             <ProjectTimeSummary projectId={id} />
             <ProjectNotes projectId={id} notes={projectNotes || []} />
             <FileUpload projectId={id} files={projectFiles || []} title="Project Files" />

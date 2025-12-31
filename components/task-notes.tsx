@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { TaskNoteDialog } from "./TaskNoteDialog";
 import { LinkifiedText } from "./LinkifiedText";
+import { formatDateTime } from "@/lib/utils";
 
 interface Note {
   id: string;
@@ -139,7 +140,7 @@ export function TaskNotes({ taskId, projectId, notes }: TaskNotesProps) {
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xs text-muted-foreground">
-                        {new Date(note.updated_at).toLocaleString()}
+                        {formatDateTime(note.updated_at)}
                       </span>
                       <div className="flex gap-1">
                         <Button onClick={() => setSelectedNote(note)} variant="ghost" size="sm" className="h-6 w-6 p-0">

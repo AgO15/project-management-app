@@ -4,8 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:staging": "next dev -p 3001",
+    "dev:prod": "next dev -p 3000",
     "build": "next build",
+    "build:staging": "next build",
+    "build:prod": "next build",
     "start": "next start",
+    "start:staging": "next start -p 3001",
+    "start:prod": "next start -p 3000",
     "lint": "next lint"
   },
   "dependencies": {

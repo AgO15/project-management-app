@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { TaskNoteDialog } from "@/components/TaskNoteDialog";
 import { LinkifiedText } from "@/components/LinkifiedText";
+import { formatDateTime } from "@/lib/utils";
 
 interface Note {
   id: string;
@@ -234,7 +235,7 @@ export function ProjectNotes({ projectId, notes: initialNotes }: ProjectNotesPro
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">
                         {note.updated_at !== note.created_at ? "Updated" : "Created"}{" "}
-                        {new Date(note.updated_at).toLocaleString()}
+                        {formatDateTime(note.updated_at)}
                       </span>
                       <div className="flex gap-1">
                         {isTooLong && (

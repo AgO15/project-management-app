@@ -3,12 +3,21 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-type UpdatableField = "name" | "description" | "status";
+// Extended to support cognitive fields
+type UpdatableField =
+  | "name"
+  | "description"
+  | "status"
+  | "color"
+  | "cycle_state"
+  | "representation"
+  | "exit_criteria"
+  | "area_id";
 
 export async function updateProjectField(
   projectId: string,
   field: UpdatableField,
-  value: string
+  value: string | null
 ) {
   // Validación básica
   if (field === "name" && !value) {
@@ -37,6 +46,7 @@ export async function updateProjectField(
 
   return { success: true };
 }
+
 
 export async function updateNoteDetails(
   noteId: string,

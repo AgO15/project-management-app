@@ -1,6 +1,47 @@
 // File: lib/types.ts
+// ============================================================================
+// Sistema de Gestión Jerárquica Basado en Neurociencia Cognitiva
+// ============================================================================
+// Base Teórica:
+//   - Nivel MACRO: Áreas de Vida (Teoría Jerárquica de Metas - Carver & Scheier)
+//   - Nivel MESO: Proyectos con Ciclos (Modelo Transteórico - Prochaska & DiClemente)
+//   - Nivel MICRO: Tareas Si-Entonces (Intenciones de Implementación - Gollwitzer)
+// ============================================================================
 
-// 1. Define el tipo para una sola Nota
+// ============================================================================
+// TIPOS FUNDAMENTALES
+// ============================================================================
+
+/**
+ * Estados del ciclo de vida de un proyecto según el modelo metabólico de energía.
+ * Basado en el Modelo Transteórico adaptado a gestión de proyectos.
+ */
+export type ProjectCycleState = 'introduction' | 'growth' | 'stabilization' | 'pause';
+
+// ============================================================================
+// NIVEL MACRO: ÁREAS DE VIDA
+// ============================================================================
+
+/**
+ * Área de vida del usuario - Nivel superior de la jerarquía de metas.
+ * Representa dominios fundamentales que dan coherencia vertical a los proyectos.
+ */
+export interface Area {
+  id: string;
+  name: string;
+  vision_statement: string | null; // Declaración de visión a largo plazo
+  user_id: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// ============================================================================
+// NIVEL MICRO: NOTAS
+// ============================================================================
+
+/**
+ * Define el tipo para una sola Nota.
+ */
 export interface Note {
   id: string;
   created_at: string;
@@ -12,7 +53,15 @@ export interface Note {
   user_id: string;
 }
 
-// 2. Define el tipo para una Tarea, incluyendo un array de Notas
+// ============================================================================
+// NIVEL MICRO: TAREAS (Intenciones de Implementación)
+// ============================================================================
+
+/**
+ * Define el tipo para una Tarea con soporte para Intenciones de Implementación.
+ * El patrón "Si-Entonces" de Gollwitzer aumenta significativamente la probabilidad
+ * de ejecución al vincular señales contextuales con acciones específicas.
+ */
 export interface Task {
   id: string;
   created_at: string;
@@ -23,10 +72,23 @@ export interface Task {
   due_date: string | null;
   project_id: string;
   user_id: string;
-  notes: Note[]; // <-- Esta es la línea clave que conecta las notas con las tareas
+  notes: Note[]; // Conexión con notas relacionadas
+  
+  // Intenciones de Implementación (Gollwitzer)
+  trigger_if: string | null;        // Condición disparadora: "Si..."
+  action_then: string | null;       // Acción específica: "Entonces..."
+  is_micro_objective: boolean;      // Indica si es un micro-objetivo discreto
 }
 
-// 3. Define el tipo para un Proyecto
+// ============================================================================
+// NIVEL MESO: PROYECTOS (Gestión Metabólica de Energía)
+// ============================================================================
+
+/**
+ * Define el tipo para un Proyecto con soporte para gestión jerárquica y metabólica.
+ * Los proyectos pertenecen a Áreas (coherencia vertical) y tienen un ciclo de vida
+ * que determina la inversión de energía apropiada.
+ */
 export interface Project {
   id: string;
   created_at: string;
@@ -35,9 +97,25 @@ export interface Project {
   color: string | null;
   status: 'active' | 'paused' | 'not_started' | 'completed' | 'archived';
   user_id: string;
+  
+  // Coherencia Vertical (Carver & Scheier)
+  area_id: string | null;           // Área de vida a la que pertenece
+  
+  // Gestión Metabólica (Modelo Transteórico adaptado)
+  cycle_state: ProjectCycleState;   // Estado actual del ciclo de vida
+  
+  // Representación Mental y Criterios de Salida
+  representation: string | null;    // Representación visual/mental del resultado deseado
+  exit_criteria: string | null;     // Criterios objetivos para considerar el proyecto completado
 }
 
-// 4. Define el tipo para una Entrada de Tiempo
+// ============================================================================
+// ENTRADAS DE TIEMPO
+// ============================================================================
+
+/**
+ * Define el tipo para una Entrada de Tiempo.
+ */
 export interface TimeEntry {
   id: string;
   description: string | null;
@@ -49,4 +127,29 @@ export interface TimeEntry {
   tasks?: { // Opcional, para obtener el título de la tarea relacionada
     title: string;
   } | null;
+}
+
+// ============================================================================
+// TIPOS AUXILIARES PARA UI
+// ============================================================================
+
+/**
+ * Proyecto con su área relacionada (para vistas que necesitan mostrar la jerarquía)
+ */
+export interface ProjectWithArea extends Project {
+  area?: Area | null;
+}
+
+/**
+ * Tarea con su proyecto relacionado (para vistas contextuales)
+ */
+export interface TaskWithProject extends Task {
+  project?: Project | null;
+}
+
+/**
+ * Área con sus proyectos relacionados (para vistas de árbol jerárquico)
+ */
+export interface AreaWithProjects extends Area {
+  projects?: Project[];
 }

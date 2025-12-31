@@ -16,6 +16,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -132,7 +133,11 @@ export function CreateTaskDialog({ children, projectId }: CreateTaskDialogProps)
 
               <div className="space-y-2">
                 <Label htmlFor="due-date">Due Date (Optional)</Label>
-                <Input id="due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <DatePicker
+                  value={dueDate}
+                  onChange={setDueDate}
+                  placeholder="dd/mm/yyyy"
+                />
               </div>
             </div>
           </form>

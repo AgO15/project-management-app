@@ -22,7 +22,16 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 });
         }
 
-        const { name, description, color } = await req.json();
+        const {
+            name,
+            description,
+            color,
+            // New cognitive fields
+            area_id,
+            cycle_state,
+            representation,
+            exit_criteria
+        } = await req.json();
 
         if (!name) {
             return new Response(JSON.stringify({ error: "Project name is required" }), { status: 400 });
@@ -33,9 +42,14 @@ export async function POST(req: Request) {
             .insert({
                 name,
                 description: description || null,
-                color: color || "#3b82f6",
+                color: color || "#22c55e", // Updated default to match cyberpunk theme
                 user_id: user.id,
                 status: "active",
+                // New cognitive fields
+                area_id: area_id || null,
+                cycle_state: cycle_state || "pause",
+                representation: representation || null,
+                exit_criteria: exit_criteria || null,
             })
             .select()
             .single();
@@ -49,3 +63,4 @@ export async function POST(req: Request) {
         return new Response(JSON.stringify({ error: "Failed to create project", details: error.message }), { status: 500 });
     }
 }
+

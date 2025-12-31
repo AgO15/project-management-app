@@ -1,111 +1,114 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/* EL BLOQUE @theme INVÁLIDO HA SIDO ELIMINADO DE AQUÍ.
+/* 
+  ============================================
+  NEUMORPHIC-GLASSMORPHISM DESIGN SYSTEM
+  ============================================
+  Visual Philosophy: Soft cognitive comfort with tactile depth
 */
 
 @custom-variant dark (&:is(.dark *));
 
-/* PASO 1: 
-  Definimos la paleta de colores "Hacker UI" y matamos el radio.
+/* 
+  ============================================
+  COLOR PALETTE - Light Theme
+  ============================================
 */
 :root {
-  /* Paleta Hacker/FUI (Verde Neón) */
-  --background: oklch(0.05 0 0); /* Casi Negro */
-  --foreground: oklch(0.9 0.01 140); /* Verde Pálido (Texto) */
-  
-  --card: oklch(0.05 0 0); /* Fondo de tarjeta = fondo de app */
-  --card-foreground: oklch(0.9 0.01 140); 
-  
-  --popover: oklch(0.1 0 0); /* Popover un poco más claro */
-  --popover-foreground: oklch(0.9 0.01 140);
+  /* Primary Background - Soft Gray */
+  --background: #E0E5EC;
+  --foreground: #444444;
 
-  --primary: oklch(0.7 0.2 140); /* Verde Neón Acento */
-  --primary-foreground: oklch(0.05 0 0); /* Texto negro en botones verdes */
+  /* Surface Colors */
+  --card: #E0E5EC;
+  --card-foreground: #444444;
 
-  --secondary: oklch(0.2 0.01 140); /* Verde oscuro (para hover sutil) */
-  --secondary-foreground: oklch(0.9 0.01 140);
+  --popover: #F0F0F3;
+  --popover-foreground: #444444;
 
-  --muted: oklch(0.15 0.01 140);
-  --muted-foreground: oklch(0.5 0.01 140); /* Texto gris (apagado) */
+  /* Accent Colors */
+  --primary: #7C9EBC;
+  --primary-foreground: #FFFFFF;
 
-  --accent: oklch(0.7 0.2 140);
-  --accent-foreground: oklch(0.05 0 0);
+  --secondary: #F0F0F3;
+  --secondary-foreground: #444444;
 
-  --destructive: oklch(0.6 0.2 25); /* Rojo Neón Alerta */
-  --destructive-foreground: oklch(0.95 0 0);
+  --muted: #D1D5DB;
+  --muted-foreground: #888888;
 
-  --border: oklch(0.3 0.01 140); /* Borde visible (clave para wireframe) */
-  --input: oklch(0.1 0.01 140); /* Input un poco más claro que el fondo */
-  --ring: oklch(0.7 0.2 140); /* Anillo de foco Verde Neón */
+  --accent: #A78BFA;
+  --accent-foreground: #FFFFFF;
 
-  /* Matar las esquinas redondeadas */
-  --radius: 0rem; 
+  --destructive: #F87171;
+  --destructive-foreground: #FFFFFF;
 
-  /* Variables de Charts y Sidebar (heredan los nuevos colores) */
-  --chart-1: oklch(0.7 0.2 140); /* Verde Neón */
-  --chart-2: oklch(0.6 0.118 184.704); /* Cian */
-  --chart-3: oklch(0.6 0.2 25); /* Rojo Neón */
-  --chart-4: oklch(0.828 0.189 84.429); /* Lima */
-  --chart-5: oklch(0.769 0.188 70.08); /* Amarillo */
-  
-  --sidebar: oklch(0.05 0 0);
-  --sidebar-foreground: oklch(0.9 0.01 140);
-  --sidebar-primary: oklch(0.2 0.01 140);
-  --sidebar-primary-foreground: oklch(0.9 0.01 140);
-  --sidebar-accent: oklch(0.7 0.2 140);
-  --sidebar-accent-foreground: oklch(0.05 0 0);
-  --sidebar-border: oklch(0.3 0.01 140);
-  --sidebar-ring: oklch(0.7 0.2 140);
+  /* Borders */
+  --border: rgba(163, 177, 198, 0.3);
+  --input: #E0E5EC;
+  --ring: #7C9EBC;
+
+  /* Rounded corners */
+  --radius: 1.25rem;
+
+  /* Charts */
+  --chart-1: #7C9EBC;
+  --chart-2: #A78BFA;
+  --chart-3: #F87171;
+  --chart-4: #34D399;
+  --chart-5: #FBBF24;
+
+  /* Sidebar */
+  --sidebar: #E8EDF2;
+  --sidebar-foreground: #444444;
+  --sidebar-primary: #7C9EBC;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0F0F3;
+  --sidebar-accent-foreground: #444444;
+  --sidebar-border: rgba(163, 177, 198, 0.3);
+  --sidebar-ring: #7C9EBC;
 }
 
+/* Dark mode - Soft dark neumorphism */
 .dark {
-  /* Hacemos que el modo oscuro sea idéntico al modo claro (dark-by-default) */
-  --background: oklch(0.05 0 0); 
-  --foreground: oklch(0.9 0.01 140);
-  --card: oklch(0.05 0 0); 
-  --card-foreground: oklch(0.9 0.01 140); 
-  --popover: oklch(0.1 0 0); 
-  --popover-foreground: oklch(0.9 0.01 140);
-  --primary: oklch(0.7 0.2 140); 
-  --primary-foreground: oklch(0.05 0 0); 
-  --secondary: oklch(0.2 0.01 140); 
-  --secondary-foreground: oklch(0.9 0.01 140);
-  --muted: oklch(0.15 0.01 140);
-  --muted-foreground: oklch(0.5 0.01 140); 
-  --accent: oklch(0.7 0.2 140);
-  --accent-foreground: oklch(0.05 0 0);
-  --destructive: oklch(0.6 0.2 25); 
-  --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.3 0.01 140); 
-  --input: oklch(0.1 0.01 140); 
-  --ring: oklch(0.7 0.2 140); 
-  --radius: 0rem; 
-  --chart-1: oklch(0.7 0.2 140);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.6 0.2 25);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.05 0 0);
-  --sidebar-foreground: oklch(0.9 0.01 140);
-  --sidebar-primary: oklch(0.2 0.01 140);
-  --sidebar-primary-foreground: oklch(0.9 0.01 140);
-  --sidebar-accent: oklch(0.7 0.2 140);
-  --sidebar-accent-foreground: oklch(0.05 0 0);
-  --sidebar-border: oklch(0.3 0.01 140);
-  --sidebar-ring: oklch(0.7 0.2 140);
+  --background: #2D3748;
+  --foreground: #E2E8F0;
+  --card: #2D3748;
+  --card-foreground: #E2E8F0;
+  --popover: #3D4A5C;
+  --popover-foreground: #E2E8F0;
+  --primary: #90CDF4;
+  --primary-foreground: #1A202C;
+  --secondary: #3D4A5C;
+  --secondary-foreground: #E2E8F0;
+  --muted: #4A5568;
+  --muted-foreground: #A0AEC0;
+  --accent: #B794F4;
+  --accent-foreground: #1A202C;
+  --destructive: #FC8181;
+  --destructive-foreground: #1A202C;
+  --border: rgba(74, 85, 104, 0.5);
+  --input: #3D4A5C;
+  --ring: #90CDF4;
+  --sidebar: #2D3748;
+  --sidebar-foreground: #E2E8F0;
+  --sidebar-primary: #90CDF4;
+  --sidebar-primary-foreground: #1A202C;
+  --sidebar-accent: #3D4A5C;
+  --sidebar-accent-foreground: #E2E8F0;
+  --sidebar-border: rgba(74, 85, 104, 0.5);
+  --sidebar-ring: #90CDF4;
 }
 
-/* PASO 2: 
-  Mapeamos las variables de Tailwind a nuestras nuevas variables.
-  Aquí cambiamos las fuentes y los radios.
+/* 
+  ============================================
+  TAILWIND THEME MAPPING
+  ============================================
 */
 @theme inline {
-  /* 👇 ESTAS SON LAS LÍNEAS CORRECTAS EN EL LUGAR CORRECTO 👇 */
-  --font-sans: var(--font-roboto-mono);
-  --font-mono: var(--font-roboto-mono);
-  
-  /* Las variables de color ya leen de :root */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -130,12 +133,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  
-  /* Forzamos TODAS las esquinas a 0 */
-  --radius-sm: 0rem;
-  --radius-md: 0rem;
-  --radius-lg: 0rem;
-  --radius-xl: 0rem;
+
+  /* Border radius - Soft, rounded */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -147,11 +151,18 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* 
+  ============================================
+  BASE STYLES
+  ============================================
+*/
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }

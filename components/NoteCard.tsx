@@ -14,6 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { LinkifiedText } from "@/components/LinkifiedText";
+import { formatDateTime } from "@/lib/utils";
 
 interface Note {
   id: string;
@@ -78,7 +79,7 @@ export function NoteCard({ note, onNoteDeleted, onViewNote }: NoteCardProps) {
         </div>
       </div>
       <p className="text-xs text-muted-foreground mt-4">
-        Updated: {new Date(note.created_at).toLocaleString()}
+        Updated: {formatDateTime(note.created_at)}
       </p>
     </div>
   );
