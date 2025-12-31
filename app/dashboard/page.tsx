@@ -40,14 +40,14 @@ export default async function DashboardPage() {
       <DashboardHeader email={data.user.email || ''}>
         <CognitiveProjectDialog>
           <Button
-            className="flex items-center gap-2 rounded-2xl px-5 py-2 text-white font-medium border-0"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-2 text-white font-medium border-0"
             style={{
               background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
-              boxShadow: '4px 4px 10px rgba(163, 177, 198, 0.5), -4px -4px 10px rgba(255, 255, 255, 0.4)'
+              boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.5), -3px -3px 6px rgba(255, 255, 255, 0.4)'
             }}
           >
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nuevo Proyecto</span>
+            <span className="hidden sm:inline text-sm">Nuevo</span>
           </Button>
         </CognitiveProjectDialog>
       </DashboardHeader>
