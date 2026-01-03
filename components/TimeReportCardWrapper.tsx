@@ -3,14 +3,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { es, enUS } from "date-fns/locale";
-import { Clock } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 
 import { createClient } from '@/lib/supabase/client';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { TimeReportCard } from "@/components/TimeReportCard";
 import { TimeEntry } from "@/lib/types";
@@ -56,6 +55,7 @@ const fetchTimeEntries = async (startDate: Date, endDate: Date): Promise<TimeEnt
 
 export function TimeReportCardWrapper() {
     const { t, language } = useLanguage();
+    const router = useRouter();
     const dateLocale = language === 'es' ? es : enUS;
 
     // Initialize date range (default: Last 7 days)
@@ -88,30 +88,63 @@ export function TimeReportCardWrapper() {
         ? `${t('timeReport')} (${format(dateRange.from, 'MMM dd', { locale: dateLocale })} - ${format(dateRange.to, 'MMM dd', { locale: dateLocale })})`
         : t('timeReport');
 
+    // Navigate to full reports page
+    const handleCardClick = (e: React.MouseEvent) => {
+        // Don't navigate if clicking on the date picker
+        if ((e.target as HTMLElement).closest('[data-date-picker]')) {
+            return;
+        }
+        router.push('/dashboard/reports');
+    };
+
     return (
         <div
-            className="rounded-3xl bg-[#E0E5EC] overflow-hidden"
+            className="rounded-3xl bg-[#E0E5EC] overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             style={{
                 boxShadow: '9px 9px 18px rgba(163, 177, 198, 0.6), -9px -9px 18px rgba(255, 255, 255, 0.5)'
+            }}
+            onClick={handleCardClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    router.push('/dashboard/reports');
+                }
             }}
         >
             <div className="p-5">
                 <div className="flex flex-col sm:flex-row items-start sm:justify-between space-y-3 sm:space-y-0 sm:space-x-4 mb-4">
-                    <h3 className="text-lg font-semibold text-[#444444]">{reportTitle}</h3>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
+                        <div
+                            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{
+                                background: 'linear-gradient(145deg, #7C9EBC, #A78BFA)',
+                                boxShadow: '2px 2px 4px rgba(163, 177, 198, 0.3), -2px -2px 4px rgba(255, 255, 255, 0.3)'
+                            }}
+                        >
+                            <BarChart3 className="h-4 w-4 text-white" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-[#444444]">{reportTitle}</h3>
+                    </div>
+                    <div
+                        className="flex items-center space-x-2"
+                        data-date-picker
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <DateRangePicker
                             date={dateRange}
                             setDate={setDateRange}
                             className="w-full sm:w-[280px]"
                         />
-                        <Link
-                            href="/dashboard/reports"
-                            className="text-[#888888] hover:text-[#7C9EBC] transition-colors"
-                        >
-                            <Clock className="h-5 w-5" />
-                        </Link>
                     </div>
                 </div>
+
+                {/* Visual hint to click for more */}
+                <div className="mb-3 text-xs text-[#7C9EBC] flex items-center gap-1">
+                    <span>{language === 'es' ? 'Clic para ver reportes completos' : 'Click for full reports'}</span>
+                    <span className="animate-pulse">→</span>
+                </div>
+
                 <TimeReportCard
                     timeEntries={timeEntries}
                     reportTitle={reportTitle}
