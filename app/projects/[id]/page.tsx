@@ -76,31 +76,51 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     .order("created_at", { ascending: false })
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-3 sm:px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-              <ProjectHeader project={project} />
-            </div>
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: '#E0E5EC' }}
+    >
+      {/* Header con estilo neumórfico */}
+      <header
+        className="sticky top-0 z-10 mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl"
+        style={{
+          backgroundColor: '#E0E5EC',
+          boxShadow: '6px 6px 12px rgba(163, 177, 198, 0.5), -6px -6px 12px rgba(255, 255, 255, 0.5)'
+        }}
+      >
+        <div className="px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/dashboard">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-xl text-[#888888] hover:text-[#444444] hover:bg-[#F0F0F3]"
+              >
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </Link>
+            <ProjectHeader project={project} />
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main content */}
+      <main className="px-3 sm:px-4 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Columna principal - Tareas */}
           <div className="lg:col-span-2 space-y-4">
-
-            {/* Botón de nueva intención Si-Entonces */}
+            {/* Botón de nueva intención Si-Entonces - Neumórfico */}
             <IfThenTaskDialog projectId={id} projectRepresentation={project.representation}>
-              <Button className="w-full py-3 text-base flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-black font-mono">
-                <Plus className="h-4 w-4" />
-                Nueva Intención Si-Entonces
+              <Button
+                className="w-full h-12 sm:h-14 text-sm sm:text-base flex items-center justify-center gap-2 rounded-2xl text-white font-medium border-0"
+                style={{
+                  background: 'linear-gradient(145deg, #34D399, #10B981)',
+                  boxShadow: '6px 6px 12px rgba(163, 177, 198, 0.5), -6px -6px 12px rgba(255, 255, 255, 0.4)'
+                }}
+              >
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Nueva Intención Si-Entonces</span>
+                <span className="sm:hidden">Nueva Intención</span>
               </Button>
             </IfThenTaskDialog>
 
@@ -108,10 +128,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               tasks={tasks || []}
               projectId={id}
             />
-
           </div>
 
-          <div className="space-y-6">
+          {/* Columna lateral - Configuración y herramientas */}
+          <div className="space-y-4 sm:space-y-6">
             {/* Cognitive Settings Card - with capacity validation */}
             <ProjectCognitiveSettings
               project={project}

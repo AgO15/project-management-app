@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { TaskNotes } from "@/components/task-notes"
 import { TaskFiles } from "@/components/task-files"
 import { TimeTracker } from "@/components/time-tracker"
@@ -61,6 +62,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
   const [sortBy, setSortBy] = useState("created_at")
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({})
 
   const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -169,15 +171,15 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
       if (error) throw error
 
       toast({
-        title: "Tarea actualizada",
-        description: "El estado de la tarea ha sido actualizado.",
+        title: t('taskUpdated'),
+        description: t('changesSuccessfullySaved'),
       })
 
       router.refresh()
     } catch (error) {
       toast({
-        title: "Error",
-        description: "No se pudo actualizar el estado de la tarea.",
+        title: t('error'),
+        description: t('couldNotUpdateTask'),
         variant: "destructive",
       })
     }
@@ -192,15 +194,15 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
       if (error) throw error
 
       toast({
-        title: "Tarea eliminada",
-        description: "La tarea ha sido eliminada correctamente.",
+        title: t('delete'),
+        description: t('changesSuccessfullySaved'),
       })
 
       router.refresh()
     } catch (error) {
       toast({
-        title: "Error",
-        description: "No se pudo eliminar la tarea.",
+        title: t('error'),
+        description: t('couldNotUpdateTask'),
         variant: "destructive",
       })
     }
@@ -221,8 +223,8 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
         >
           <CheckCircle2 className="h-10 w-10 text-white" />
         </div>
-        <h3 className="text-lg font-semibold text-[#444444] mb-2">Sin tareas aún</h3>
-        <p className="text-[#888888] mb-4">Crea tu primera tarea para comenzar a organizar tu trabajo</p>
+        <h3 className="text-lg font-semibold text-[#444444] mb-2">{t('noTasksYet')}</h3>
+        <p className="text-[#888888] mb-4">{t('createFirstTask')}</p>
       </div>
     )
   }
@@ -244,13 +246,13 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
               className="w-full h-11 text-base rounded-xl border-0 text-[#444444]"
               style={neuInsetStyle}
             >
-              <SelectValue placeholder="Filtrar" />
+              <SelectValue placeholder={t('filterBy')} />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-0" style={{ backgroundColor: '#F0F0F3' }}>
-              <SelectItem value="all" className="rounded-lg">Todas</SelectItem>
-              <SelectItem value="todo" className="rounded-lg">Por hacer</SelectItem>
-              <SelectItem value="in_progress" className="rounded-lg">En progreso</SelectItem>
-              <SelectItem value="completed" className="rounded-lg">Completadas</SelectItem>
+              <SelectItem value="all" className="rounded-lg">{t('allTasks')}</SelectItem>
+              <SelectItem value="todo" className="rounded-lg">{t('todo')}</SelectItem>
+              <SelectItem value="in_progress" className="rounded-lg">{t('inProgress')}</SelectItem>
+              <SelectItem value="completed" className="rounded-lg">{t('completed')}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
@@ -258,18 +260,18 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
               className="w-full h-11 text-base rounded-xl border-0 text-[#444444]"
               style={neuInsetStyle}
             >
-              <SelectValue placeholder="Ordenar" />
+              <SelectValue placeholder={t('sortBy')} />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-0" style={{ backgroundColor: '#F0F0F3' }}>
-              <SelectItem value="created_at" className="rounded-lg">Fecha creación</SelectItem>
-              <SelectItem value="priority" className="rounded-lg">Prioridad</SelectItem>
-              <SelectItem value="due_date" className="rounded-lg">Fecha límite</SelectItem>
+              <SelectItem value="created_at" className="rounded-lg">{t('createdAt')}</SelectItem>
+              <SelectItem value="priority" className="rounded-lg">{t('priority')}</SelectItem>
+              <SelectItem value="due_date" className="rounded-lg">{t('dueDate')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="text-sm text-[#888888]">
-          {filteredTasks.length} de {tasks.length} tareas
+          {filteredTasks.length} / {tasks.length} {t('tasksCount')}
         </div>
       </div>
 
@@ -328,7 +330,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                                   className="ml-1 underline text-[#7C9EBC] hover:text-[#5A7C9A]"
                                   onClick={() => setExpandedDescriptions({ ...expandedDescriptions, [task.id]: true })}
                                 >
-                                  Ver más
+                                  {t('seeMore')}
                                 </button>
                               ) : null}
                             </p>
@@ -358,7 +360,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                           className="flex items-center gap-2 rounded-lg"
                         >
                           <Pencil className="h-4 w-4" />
-                          Editar
+                          {t('edit')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-[rgba(163,177,198,0.3)]" />
                         <DropdownMenuItem
@@ -366,28 +368,28 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                           disabled={task.status === "todo"}
                           className="rounded-lg"
                         >
-                          Marcar como Por hacer
+                          {t('markAsTodo')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => updateTaskStatus(task.id, "in_progress")}
                           disabled={task.status === "in_progress"}
                           className="rounded-lg"
                         >
-                          Marcar como En progreso
+                          {t('markAsInProgress')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => updateTaskStatus(task.id, "completed")}
                           disabled={task.status === "completed"}
                           className="rounded-lg"
                         >
-                          Marcar como Completada
+                          {t('markAsCompleted')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-[rgba(163,177,198,0.3)]" />
                         <DropdownMenuItem
                           onClick={() => deleteTask(task.id)}
                           className="text-red-500 rounded-lg"
                         >
-                          Eliminar tarea
+                          {t('deleteTask')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -401,7 +403,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                     >
                       <StatusIcon className="h-3.5 w-3.5 text-[#7C9EBC]" />
                       <span className="text-[#666] capitalize">
-                        {task.status === "todo" ? "Por hacer" : task.status === "in_progress" ? "En progreso" : "Completada"}
+                        {task.status === "todo" ? t('todo') : task.status === "in_progress" ? t('inProgress') : t('completed')}
                       </span>
                     </div>
 
@@ -414,7 +416,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                       )}
                     >
                       <AlertCircle className="h-3 w-3" />
-                      {task.priority === "low" ? "Baja" : task.priority === "medium" ? "Media" : "Alta"}
+                      {task.priority === "low" ? t('low') : task.priority === "medium" ? t('medium') : t('high')}
                     </div>
 
                     {showDueDate ? (
@@ -430,7 +432,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                           <span className={!isOverdue ? "text-[#666]" : ""}>
                             {new Date(task.due_date).toLocaleDateString()}
                           </span>
-                          {isOverdue && <span className="font-medium">(Vencida)</span>}
+                          {isOverdue && <span className="font-medium">({t('overdue')})</span>}
                         </div>
                       )
                     ) : (

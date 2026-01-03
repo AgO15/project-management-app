@@ -10,6 +10,7 @@ import { Play, Square, Clock, Plus, Edit, Trash2, Save, X, ChevronDown, ChevronR
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   Dialog,
@@ -79,6 +80,7 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   useEffect(() => {
     const activeEntry = timeEntries.find((entry) => !entry.end_time)
@@ -126,10 +128,10 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
       setIsRunning(true)
       setElapsedTime(0)
 
-      toast({ title: "Timer iniciado", description: "El seguimiento de tiempo ha comenzado." })
+      toast({ title: t('timerRunning'), description: t('changesSuccessfullySaved') })
       router.refresh()
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo iniciar el timer.", variant: "destructive" })
+      toast({ title: t('error'), description: t('couldNotUpdateTask'), variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -153,10 +155,10 @@ export function TimeTracker({ taskId, timeEntries }: TimeTrackerProps) {
       setIsRunning(false)
       setElapsedTime(0)
 
-      toast({ title: "Timer detenido", description: "El registro de tiempo ha sido guardado." })
+      toast({ title: t('saved'), description: t('changesSuccessfullySaved') })
       router.refresh()
     } catch (error) {
-      toast({ title: "Error", description: "No se pudo detener el timer.", variant: "destructive" })
+      toast({ title: t('error'), description: t('couldNotUpdateTask'), variant: "destructive" })
     } finally {
       setLoading(false)
     }

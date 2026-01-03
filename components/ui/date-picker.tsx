@@ -22,6 +22,12 @@ interface DatePickerProps {
     disabled?: boolean;
 }
 
+// Neumorphic styles
+const neuInputStyle = {
+    backgroundColor: '#E0E5EC',
+    boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+};
+
 export function DatePicker({
     value,
     onChange,
@@ -99,10 +105,8 @@ export function DatePicker({
                         onBlur={handleInputBlur}
                         placeholder={placeholder}
                         disabled={disabled}
-                        className={cn(
-                            "h-9 pr-10 bg-black/50 border-[rgba(34,197,94,0.3)] text-green-400 font-mono placeholder:text-green-500/40 text-sm",
-                            "focus:ring-1 focus:ring-green-500/50"
-                        )}
+                        className="h-10 pr-10 rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] text-sm"
+                        style={neuInputStyle}
                     />
                     <PopoverTrigger asChild>
                         <Button
@@ -110,11 +114,7 @@ export function DatePicker({
                             variant="ghost"
                             size="sm"
                             disabled={disabled}
-                            className={cn(
-                                "absolute right-0 h-9 w-9 p-0",
-                                "text-green-400/70 hover:text-green-400 hover:bg-green-500/10",
-                                "border-l border-[rgba(34,197,94,0.2)]"
-                            )}
+                            className="absolute right-1 h-8 w-8 p-0 rounded-lg text-[#7C9EBC] hover:text-[#5A7C9A] hover:bg-[#F0F0F3]"
                         >
                             <CalendarIcon className="h-4 w-4" />
                         </Button>
@@ -122,48 +122,57 @@ export function DatePicker({
                 </div>
 
                 <PopoverContent
-                    className="w-auto p-0 bg-black border-[rgba(34,197,94,0.3)]"
+                    className="w-auto p-3 border-0 rounded-2xl"
                     align="end"
                     sideOffset={4}
+                    style={{
+                        backgroundColor: '#E0E5EC',
+                        boxShadow: '12px 12px 24px rgba(163, 177, 198, 0.6), -12px -12px 24px rgba(255, 255, 255, 0.5)'
+                    }}
                 >
                     <Calendar
                         mode="single"
                         selected={selectedDate}
                         onSelect={handleSelectDate}
                         locale={es}
-                        className="[&_.rdp-day]:text-green-400 [&_.rdp-day_button]:text-green-400"
                         classNames={{
                             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                             month: "space-y-4",
                             caption: "flex justify-center pt-1 relative items-center",
-                            caption_label: "text-sm font-mono text-green-400",
+                            caption_label: "text-sm font-medium text-[#444444]",
                             nav: "space-x-1 flex items-center",
                             nav_button: cn(
-                                "h-7 w-7 bg-transparent p-0",
-                                "text-green-400 hover:text-green-300 hover:bg-green-500/10",
-                                "rounded-md border border-[rgba(34,197,94,0.2)]"
+                                "h-7 w-7 bg-transparent p-0 rounded-lg",
+                                "text-[#7C9EBC] hover:text-[#5A7C9A] hover:bg-[#F0F0F3]"
                             ),
                             nav_button_previous: "absolute left-1",
                             nav_button_next: "absolute right-1",
                             table: "w-full border-collapse space-y-1",
                             head_row: "flex",
-                            head_cell: "text-green-500/60 rounded-md w-8 font-mono text-[0.7rem] text-center",
+                            head_cell: "text-[#888888] rounded-md w-8 text-[0.75rem] text-center font-medium",
                             row: "flex w-full mt-2",
                             cell: cn(
                                 "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
                                 "first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
                             ),
                             day: cn(
-                                "h-8 w-8 p-0 font-mono text-sm",
-                                "text-green-400 hover:bg-green-500/20 hover:text-green-300",
-                                "rounded-md transition-colors",
-                                "aria-selected:bg-green-600 aria-selected:text-black"
+                                "h-8 w-8 p-0 text-sm font-normal",
+                                "text-[#444444] hover:bg-[#D0D5DC] rounded-lg transition-colors"
                             ),
-                            day_selected: "bg-green-600 text-black hover:bg-green-700 hover:text-black focus:bg-green-600",
-                            day_today: "border border-green-500/50",
-                            day_outside: "text-green-500/30 opacity-50",
-                            day_disabled: "text-green-500/20",
+                            day_selected: cn(
+                                "text-white rounded-lg",
+                                "hover:text-white focus:text-white"
+                            ),
+                            day_today: "border-2 border-[#7C9EBC] rounded-lg",
+                            day_outside: "text-[#aaa] opacity-50",
+                            day_disabled: "text-[#ccc] opacity-30",
                             day_hidden: "invisible",
+                        }}
+                        modifiersStyles={{
+                            selected: {
+                                background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
+                                boxShadow: '2px 2px 4px rgba(163, 177, 198, 0.3), -2px -2px 4px rgba(255, 255, 255, 0.3)',
+                            }
                         }}
                     />
                 </PopoverContent>

@@ -20,15 +20,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { Zap, ArrowRight, Brain, AlertCircle, Lightbulb } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-interface Project {
-    id: string
-    name: string
-    representation: string | null
-    color: string | null
-}
 
 interface IfThenTaskDialogProps {
     children: React.ReactNode
@@ -38,30 +32,35 @@ interface IfThenTaskDialogProps {
 
 const MAX_ACTION_LENGTH = 100
 
+// Neumorphic styles
+const neuInputStyle = {
+    backgroundColor: '#E0E5EC',
+    boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+}
+
 export function IfThenTaskDialog({ children, projectId, projectRepresentation }: IfThenTaskDialogProps) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
 
-    // Traditional fields
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [priority, setPriority] = useState("medium")
     const [dueDate, setDueDate] = useState("")
 
-    // If-Then fields (Gollwitzer Implementation Intentions)
     const [triggerIf, setTriggerIf] = useState("")
     const [actionThen, setActionThen] = useState("")
     const [isMicroObjective, setIsMicroObjective] = useState(true)
 
     const router = useRouter()
     const { toast } = useToast()
+    const { t, language } = useLanguage()
 
-    // Auto-generate title from If-Then pattern (full text, no truncation)
     useEffect(() => {
         if (triggerIf && actionThen) {
-            setTitle(`Si ${triggerIf} → ${actionThen}`)
+            const ifWord = language === 'es' ? 'Si' : 'If'
+            setTitle(`${ifWord} ${triggerIf} → ${actionThen}`)
         }
-    }, [triggerIf, actionThen])
+    }, [triggerIf, actionThen, language])
 
     const resetForm = () => {
         setTitle("")
@@ -81,12 +80,9 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
         const supabase = createClient()
 
         try {
-            const {
-                data: { user },
-            } = await supabase.auth.getUser()
+            const { data: { user } } = await supabase.auth.getUser()
             if (!user) throw new Error("Not authenticated")
 
-            // Generate a meaningful title if not set
             const finalTitle = title.trim() || actionThen.trim()
 
             const { error } = await supabase.from("tasks").insert({
@@ -96,7 +92,6 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
                 due_date: dueDate || null,
                 project_id: projectId,
                 user_id: user.id,
-                // New Implementation Intention fields
                 trigger_if: triggerIf.trim() || null,
                 action_then: actionThen.trim(),
                 is_micro_objective: isMicroObjective,
@@ -105,8 +100,8 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
             if (error) throw error
 
             toast({
-                title: "Intención creada",
-                description: "Tu micro-objetivo ha sido programado con éxito.",
+                title: t('intentionCreated'),
+                description: t('microObjectiveScheduled'),
             })
 
             setOpen(false)
@@ -115,8 +110,8 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
         } catch (error) {
             console.error("Task creation error:", error)
             toast({
-                title: "Error",
-                description: "No se pudo crear la tarea. Intenta de nuevo.",
+                title: t('error'),
+                description: t('couldNotCreateTask'),
                 variant: "destructive",
             })
         } finally {
@@ -130,143 +125,197 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent className={cn(
-                "flex flex-col overflow-hidden bg-black border-[rgba(34,197,94,0.3)]",
-                "w-[95vw] max-w-lg",
-                "max-h-[85vh] sm:max-h-[90vh]",
-                "p-4 sm:p-6"
-            )}>
-                {/* Header - Compact */}
-                <DialogHeader className="flex-shrink-0 pb-2 sm:pb-3">
-                    <DialogTitle className="text-green-400 font-mono flex items-center gap-2 text-base sm:text-lg">
-                        <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Nueva Intención de Implementación
+            <DialogContent
+                className={cn(
+                    "flex flex-col overflow-hidden",
+                    "w-[95vw] max-w-lg",
+                    "max-h-[85vh] sm:max-h-[90vh]",
+                    "p-0 border-0 rounded-3xl"
+                )}
+                style={{
+                    backgroundColor: '#E0E5EC',
+                    boxShadow: '20px 20px 40px rgba(163, 177, 198, 0.7), -20px -20px 40px rgba(255, 255, 255, 0.6)'
+                }}
+            >
+                {/* Header */}
+                <DialogHeader className="flex-shrink-0 p-5 sm:p-6 pb-3">
+                    <DialogTitle className="text-[#444444] flex items-center gap-3 text-lg sm:text-xl">
+                        <div
+                            className="w-10 h-10 rounded-2xl flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(145deg, #F59E0B, #D97706)',
+                                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.4)'
+                            }}
+                        >
+                            <Zap className="w-5 h-5 text-white" />
+                        </div>
+                        {t('newIfThenIntention')}
                     </DialogTitle>
-                    <DialogDescription className="text-green-500/60 font-mono text-xs sm:text-sm">
-                        El patrón "Si-Entonces" aumenta 3x la probabilidad de ejecución.
+                    <DialogDescription className="text-[#888888] text-sm">
+                        {t('ifThenPattern')}
                     </DialogDescription>
                 </DialogHeader>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
+                <div className="flex-1 overflow-y-auto min-h-0 px-5 sm:px-6">
                     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
 
                         {/* Project Representation Primer */}
                         {projectRepresentation && (
-                            <div className="p-2.5 sm:p-3 rounded-lg border border-[rgba(34,197,94,0.2)] bg-green-500/5">
+                            <div
+                                className="p-3 rounded-2xl"
+                                style={{
+                                    backgroundColor: '#F0F0F3',
+                                    boxShadow: 'inset 2px 2px 4px rgba(163, 177, 198, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.5)'
+                                }}
+                            >
                                 <div className="flex items-start gap-2">
-                                    <Brain className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                    <Brain className="w-4 h-4 text-[#7C9EBC] mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <p className="text-[10px] sm:text-xs text-green-500/70 font-mono mb-0.5 sm:mb-1">Este proyecto representa:</p>
-                                        <p className="text-xs sm:text-sm text-green-400 font-mono italic">"{projectRepresentation}"</p>
+                                        <p className="text-xs text-[#888888] mb-1">{t('projectRepresents')}</p>
+                                        <p className="text-sm text-[#444444] italic">"{projectRepresentation}"</p>
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         {/* If-Then Mad-libs Style Input */}
-                        <div className="space-y-3 sm:space-y-4">
-                            <div className="flex items-center gap-2 text-green-500 font-mono text-xs sm:text-sm">
-                                <Lightbulb className="w-3 h-3 sm:w-4 sm:h-4" />
-                                INTENCIÓN DE IMPLEMENTACIÓN
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-[#7C9EBC] font-medium text-xs uppercase tracking-wide">
+                                <Lightbulb className="w-4 h-4" />
+                                {t('implementationIntention')}
                             </div>
 
                             {/* SI (Trigger) */}
-                            <div className="space-y-1.5 sm:space-y-2">
+                            <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-600 text-black font-mono font-bold rounded text-xs sm:text-sm">
-                                        SI
+                                    <div
+                                        className="px-3 py-1.5 rounded-xl text-white font-bold text-sm"
+                                        style={{
+                                            background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
+                                            boxShadow: '2px 2px 4px rgba(163, 177, 198, 0.4), -2px -2px 4px rgba(255, 255, 255, 0.4)'
+                                        }}
+                                    >
+                                        {t('ifTrigger')}
                                     </div>
-                                    <span className="text-green-500/60 text-xs sm:text-sm font-mono">(disparador contextual)</span>
+                                    <span className="text-[#888888] text-xs">({t('contextualTrigger')})</span>
                                 </div>
                                 <Input
                                     value={triggerIf}
                                     onChange={(e) => setTriggerIf(e.target.value)}
-                                    placeholder="Ej: son las 7am y me levanto..."
-                                    className="h-9 bg-black/50 border-[rgba(34,197,94,0.3)] text-green-400 font-mono placeholder:text-green-500/40 text-sm"
+                                    placeholder={t('triggerPlaceholder')}
+                                    className="h-11 rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] text-sm"
+                                    style={neuInputStyle}
                                 />
-                                <p className="text-[10px] sm:text-xs text-green-500/40 font-mono">
-                                    Tip: Usa momentos específicos, lugares o eventos que ocurren naturalmente.
+                                <p className="text-xs text-[#888888]">
+                                    {t('triggerTip')}
                                 </p>
                             </div>
 
                             {/* Arrow */}
                             <div className="flex justify-center py-1">
-                                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 animate-pulse" />
+                                <div
+                                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                                    style={{
+                                        backgroundColor: '#E0E5EC',
+                                        boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.6)'
+                                    }}
+                                >
+                                    <ArrowRight className="w-5 h-5 text-[#7C9EBC]" />
+                                </div>
                             </div>
 
                             {/* ENTONCES (Action) */}
-                            <div className="space-y-1.5 sm:space-y-2">
+                            <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-green-600 text-black font-mono font-bold rounded text-xs sm:text-sm">
-                                        ENTONCES
+                                    <div
+                                        className="px-3 py-1.5 rounded-xl text-white font-bold text-sm"
+                                        style={{
+                                            background: 'linear-gradient(145deg, #34D399, #10B981)',
+                                            boxShadow: '2px 2px 4px rgba(163, 177, 198, 0.4), -2px -2px 4px rgba(255, 255, 255, 0.4)'
+                                        }}
+                                    >
+                                        {t('thenAction')}
                                     </div>
-                                    <span className="text-green-500/60 text-xs sm:text-sm font-mono">(micro-acción atómica)</span>
+                                    <span className="text-[#888888] text-xs">({t('atomicAction')})</span>
                                 </div>
                                 <Input
                                     value={actionThen}
                                     onChange={(e) => setActionThen(e.target.value)}
-                                    placeholder="Ej: haré 10 flexiones"
+                                    placeholder={t('actionPlaceholder')}
                                     className={cn(
-                                        "h-9 bg-black/50 border-[rgba(34,197,94,0.3)] text-green-400 font-mono placeholder:text-green-500/40 text-sm",
-                                        isActionTooLong && "border-red-500/50 focus:border-red-500"
+                                        "h-11 rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] text-sm",
+                                        isActionTooLong && "ring-2 ring-red-400"
                                     )}
+                                    style={neuInputStyle}
                                     required
                                 />
                                 <div className="flex justify-between items-center">
-                                    <p className="text-[10px] sm:text-xs text-green-500/40 font-mono">
-                                        Mantén la acción breve y específica (máx. {MAX_ACTION_LENGTH} caracteres).
+                                    <p className="text-xs text-[#888888]">
+                                        {t('keepActionBrief')} ({t('maxCharacters')}: {MAX_ACTION_LENGTH})
                                     </p>
                                     <span className={cn(
-                                        "text-[10px] sm:text-xs font-mono",
-                                        isActionTooLong ? "text-red-400" : "text-green-500/40"
+                                        "text-xs",
+                                        isActionTooLong ? "text-red-500" : "text-[#888888]"
                                     )}>
                                         {actionThenLength}/{MAX_ACTION_LENGTH}
                                     </span>
                                 </div>
                                 {isActionTooLong && (
-                                    <div className="flex items-center gap-1 text-red-400 text-[10px] sm:text-xs font-mono">
+                                    <div className="flex items-center gap-1 text-red-500 text-xs">
                                         <AlertCircle className="w-3 h-3" />
-                                        La acción es demasiado larga. Los micro-objetivos deben ser atómicos.
+                                        {t('actionTooLong')}
                                     </div>
                                 )}
                             </div>
 
                             {/* Preview */}
                             {triggerIf && actionThen && !isActionTooLong && (
-                                <div className="p-2.5 sm:p-3 rounded-lg border border-green-500/30 bg-green-500/10">
-                                    <p className="text-[10px] sm:text-xs text-green-500/70 font-mono mb-1 sm:mb-2">Vista previa:</p>
-                                    <p className="text-xs sm:text-sm text-green-400 font-mono">
-                                        <span className="text-green-600 font-bold">SI</span> {triggerIf}{" "}
-                                        <span className="text-green-600 font-bold">→ ENTONCES</span> {actionThen}
+                                <div
+                                    className="p-3 rounded-2xl"
+                                    style={{
+                                        background: 'linear-gradient(145deg, rgba(124,158,188,0.1), rgba(167,139,250,0.1))',
+                                        boxShadow: 'inset 2px 2px 4px rgba(163, 177, 198, 0.2), inset -2px -2px 4px rgba(255, 255, 255, 0.3)'
+                                    }}
+                                >
+                                    <p className="text-xs text-[#888888] mb-2">{t('preview')}:</p>
+                                    <p className="text-sm text-[#444444]">
+                                        <span className="text-[#7C9EBC] font-bold">{t('ifTrigger')}</span> {triggerIf}{" "}
+                                        <span className="text-emerald-500 font-bold">→ {t('thenAction')}</span> {actionThen}
                                     </p>
                                 </div>
                             )}
                         </div>
 
                         {/* Additional Details */}
-                        <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t border-[rgba(34,197,94,0.2)]">
-                            <div className="flex items-center gap-2 text-green-500/60 font-mono text-xs sm:text-sm">
-                                DETALLES ADICIONALES (Opcional)
+                        <div className="space-y-4 pt-4 border-t border-[rgba(163,177,198,0.3)]">
+                            <div className="text-[#888888] text-xs uppercase tracking-wide">
+                                {t('additionalDetails')} ({t('optional')})
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1.5">
-                                    <Label className="text-green-400/70 font-mono text-xs">Prioridad</Label>
+                                <div className="space-y-2">
+                                    <Label className="text-[#666] text-xs font-medium">{t('priority')}</Label>
                                     <Select value={priority} onValueChange={setPriority}>
-                                        <SelectTrigger className="h-9 bg-black/50 border-[rgba(34,197,94,0.2)] text-green-400 font-mono text-xs sm:text-sm">
+                                        <SelectTrigger
+                                            className="h-10 rounded-xl border-0 text-[#444444] text-sm"
+                                            style={neuInputStyle}
+                                        >
                                             <SelectValue />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-black border-[rgba(34,197,94,0.3)]">
-                                            <SelectItem value="low" className="text-green-400 font-mono">Baja</SelectItem>
-                                            <SelectItem value="medium" className="text-green-400 font-mono">Media</SelectItem>
-                                            <SelectItem value="high" className="text-green-400 font-mono">Alta</SelectItem>
+                                        <SelectContent
+                                            className="rounded-xl border-0"
+                                            style={{ backgroundColor: '#F0F0F3' }}
+                                        >
+                                            <SelectItem value="low" className="rounded-lg">{t('low')}</SelectItem>
+                                            <SelectItem value="medium" className="rounded-lg">{t('medium')}</SelectItem>
+                                            <SelectItem value="high" className="rounded-lg">{t('high')}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="due-date" className="text-green-400/70 font-mono text-xs">Fecha límite</Label>
+                                <div className="space-y-2">
+                                    <Label className="text-[#666] text-xs font-medium">{t('dueDate')}</Label>
                                     <DatePicker
                                         value={dueDate}
                                         onChange={setDueDate}
@@ -275,42 +324,45 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                                <Label htmlFor="description" className="text-green-400/70 font-mono text-xs">Notas adicionales</Label>
+                            <div className="space-y-2">
+                                <Label className="text-[#666] text-xs font-medium">{t('additionalNotes')}</Label>
                                 <Textarea
-                                    id="description"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Contexto adicional o recordatorios..."
+                                    placeholder={t('notesPlaceholder')}
                                     rows={2}
-                                    className="bg-black/50 border-[rgba(34,197,94,0.2)] text-green-400 font-mono placeholder:text-green-500/30 text-sm resize-none"
+                                    className="rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] text-sm resize-none"
+                                    style={neuInputStyle}
                                 />
                             </div>
                         </div>
                     </form>
                 </div>
 
-                {/* Footer - Action Buttons */}
-                <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 flex-shrink-0 border-t border-[rgba(34,197,94,0.2)] mt-3">
+                {/* Footer */}
+                <div className="flex gap-3 p-5 sm:p-6 pt-4 flex-shrink-0">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => setOpen(false)}
-                        className="flex-1 h-9 sm:h-10 border-[rgba(34,197,94,0.3)] text-green-400 hover:bg-green-500/10 font-mono text-xs sm:text-sm"
+                        className="flex-1 h-11 rounded-xl text-[#888888] hover:text-[#444444] hover:bg-[#F0F0F3] font-medium"
                     >
-                        Cancelar
+                        {t('cancel')}
                     </Button>
                     <Button
                         type="submit"
                         disabled={loading || !actionThen.trim() || isActionTooLong}
-                        className="flex-1 h-9 sm:h-10 bg-green-600 hover:bg-green-700 text-black font-mono text-xs sm:text-sm"
+                        className="flex-1 h-11 rounded-xl text-white font-medium border-0"
                         onClick={handleSubmit}
+                        style={{
+                            background: 'linear-gradient(145deg, #34D399, #10B981)',
+                            boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.4)'
+                        }}
                     >
-                        {loading ? "Creando..." : "Crear Intención"}
+                        {loading ? t('creating') : t('createIntention')}
                     </Button>
                 </div>
             </DialogContent>
         </Dialog>
     )
 }
-

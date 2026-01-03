@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { Pencil, AlertCircle, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -36,10 +37,15 @@ interface EditTaskDialogProps {
     onOpenChange: (open: boolean) => void
 }
 
+// Neumorphic styles
+const neuInputStyle = {
+    backgroundColor: '#E0E5EC',
+    boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.7)',
+}
+
 export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps) {
     const [loading, setLoading] = useState(false)
 
-    // Form state
     const [title, setTitle] = useState(task.title)
     const [description, setDescription] = useState(task.description || "")
     const [priority, setPriority] = useState(task.priority)
@@ -48,8 +54,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
     const router = useRouter()
     const { toast } = useToast()
+    const { t } = useLanguage()
 
-    // Reset form when task changes
     useEffect(() => {
         setTitle(task.title)
         setDescription(task.description || "")
@@ -81,16 +87,16 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
             if (error) throw error
 
             toast({
-                title: "Tarea actualizada",
-                description: "Los cambios han sido guardados correctamente.",
+                title: t('taskUpdated'),
+                description: t('changesSuccessfullySaved'),
             })
 
             onOpenChange(false)
             router.refresh()
         } catch (error) {
             toast({
-                title: "Error",
-                description: "No se pudo actualizar la tarea. Intenta de nuevo.",
+                title: t('error'),
+                description: t('couldNotUpdateTask'),
                 variant: "destructive",
             })
         } finally {
@@ -100,37 +106,51 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={cn(
-                "flex flex-col overflow-hidden bg-black border-[rgba(34,197,94,0.3)]",
-                "w-[95vw] max-w-md",
-                "max-h-[85vh] sm:max-h-[90vh]",
-                "p-4 sm:p-6"
-            )}>
+            <DialogContent
+                className={cn(
+                    "flex flex-col overflow-hidden",
+                    "w-[95vw] max-w-md",
+                    "max-h-[85vh] sm:max-h-[90vh]",
+                    "p-0 border-0 rounded-3xl"
+                )}
+                style={{
+                    backgroundColor: '#E0E5EC',
+                    boxShadow: '20px 20px 40px rgba(163, 177, 198, 0.7), -20px -20px 40px rgba(255, 255, 255, 0.6)'
+                }}
+            >
                 {/* Header */}
-                <DialogHeader className="flex-shrink-0 pb-2">
-                    <DialogTitle className="text-green-400 font-mono flex items-center gap-2 text-base sm:text-lg">
-                        <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Editar Tarea
+                <DialogHeader className="flex-shrink-0 p-5 sm:p-6 pb-3">
+                    <DialogTitle className="text-[#444444] flex items-center gap-3 text-lg sm:text-xl">
+                        <div
+                            className="w-10 h-10 rounded-2xl flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(145deg, #7C9EBC, #A78BFA)',
+                                boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.4), -3px -3px 6px rgba(255, 255, 255, 0.4)'
+                            }}
+                        >
+                            <Pencil className="w-5 h-5 text-white" />
+                        </div>
+                        {t('editTask')}
                     </DialogTitle>
-                    <DialogDescription className="text-green-500/60 font-mono text-xs sm:text-sm">
-                        Modifica los detalles de la tarea.
+                    <DialogDescription className="text-[#888888] text-sm">
+                        {t('modifyTaskDetails')}
                     </DialogDescription>
                 </DialogHeader>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
+                <div className="flex-1 overflow-y-auto min-h-0 px-5 sm:px-6">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Title */}
-                        <div className="space-y-1.5">
-                            <Label htmlFor="edit-title" className="text-green-400 font-mono text-xs sm:text-sm">
-                                Título *
+                        <div className="space-y-2">
+                            <Label className="text-[#666] text-xs font-medium">
+                                {t('title')} *
                             </Label>
                             <Input
-                                id="edit-title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Título de la tarea"
-                                className="h-9 bg-black/50 border-[rgba(34,197,94,0.3)] text-green-400 font-mono placeholder:text-green-500/40 text-sm"
+                                placeholder={t('title')}
+                                className="h-11 rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] text-sm"
+                                style={neuInputStyle}
                                 required
                             />
                         </div>
@@ -138,28 +158,34 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                         {/* Priority + Due Date */}
                         <div className="grid grid-cols-2 gap-3">
                             {/* Priority */}
-                            <div className="space-y-1.5">
-                                <Label className="text-green-400 font-mono text-xs sm:text-sm flex items-center gap-1">
+                            <div className="space-y-2">
+                                <Label className="text-[#666] text-xs font-medium flex items-center gap-1">
                                     <AlertCircle className="w-3 h-3" />
-                                    Urgencia
+                                    {t('priority')}
                                 </Label>
                                 <Select value={priority} onValueChange={setPriority}>
-                                    <SelectTrigger className="h-9 bg-black/50 border-[rgba(34,197,94,0.3)] text-green-400 font-mono text-sm">
+                                    <SelectTrigger
+                                        className="h-10 rounded-xl border-0 text-[#444444] text-sm"
+                                        style={neuInputStyle}
+                                    >
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-black border-[rgba(34,197,94,0.3)]">
-                                        <SelectItem value="low" className="text-green-400 font-mono">Baja</SelectItem>
-                                        <SelectItem value="medium" className="text-yellow-400 font-mono">Media</SelectItem>
-                                        <SelectItem value="high" className="text-red-400 font-mono">Alta</SelectItem>
+                                    <SelectContent
+                                        className="rounded-xl border-0"
+                                        style={{ backgroundColor: '#F0F0F3' }}
+                                    >
+                                        <SelectItem value="low" className="rounded-lg text-emerald-600">{t('low')}</SelectItem>
+                                        <SelectItem value="medium" className="rounded-lg text-amber-600">{t('medium')}</SelectItem>
+                                        <SelectItem value="high" className="rounded-lg text-red-500">{t('high')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             {/* Due Date */}
-                            <div className="space-y-1.5">
-                                <Label className="text-green-400 font-mono text-xs sm:text-sm flex items-center gap-1">
+                            <div className="space-y-2">
+                                <Label className="text-[#666] text-xs font-medium flex items-center gap-1">
                                     <Calendar className="w-3 h-3" />
-                                    Fecha límite
+                                    {t('dueDate')}
                                 </Label>
                                 <DatePicker
                                     value={dueDate}
@@ -170,56 +196,66 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                         </div>
 
                         {/* Status */}
-                        <div className="space-y-1.5">
-                            <Label className="text-green-400 font-mono text-xs sm:text-sm">
-                                Estado
+                        <div className="space-y-2">
+                            <Label className="text-[#666] text-xs font-medium">
+                                {t('status')}
                             </Label>
                             <Select value={status} onValueChange={setStatus}>
-                                <SelectTrigger className="h-9 bg-black/50 border-[rgba(34,197,94,0.3)] text-green-400 font-mono text-sm">
+                                <SelectTrigger
+                                    className="h-10 rounded-xl border-0 text-[#444444] text-sm"
+                                    style={neuInputStyle}
+                                >
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-black border-[rgba(34,197,94,0.3)]">
-                                    <SelectItem value="todo" className="text-green-400 font-mono">Por hacer</SelectItem>
-                                    <SelectItem value="in_progress" className="text-yellow-400 font-mono">En progreso</SelectItem>
-                                    <SelectItem value="completed" className="text-blue-400 font-mono">Completada</SelectItem>
+                                <SelectContent
+                                    className="rounded-xl border-0"
+                                    style={{ backgroundColor: '#F0F0F3' }}
+                                >
+                                    <SelectItem value="todo" className="rounded-lg">{t('todo')}</SelectItem>
+                                    <SelectItem value="in_progress" className="rounded-lg text-amber-600">{t('inProgress')}</SelectItem>
+                                    <SelectItem value="completed" className="rounded-lg text-emerald-600">{t('completed')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         {/* Description */}
-                        <div className="space-y-1.5">
-                            <Label htmlFor="edit-description" className="text-green-400 font-mono text-xs sm:text-sm">
-                                Descripción
+                        <div className="space-y-2">
+                            <Label className="text-[#666] text-xs font-medium">
+                                {t('description')}
                             </Label>
                             <Textarea
-                                id="edit-description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Descripción de la tarea..."
+                                placeholder={t('description')}
                                 rows={3}
-                                className="bg-black/50 border-[rgba(34,197,94,0.3)] text-green-400 font-mono placeholder:text-green-500/40 text-sm resize-none"
+                                className="rounded-xl border-0 text-[#444444] placeholder:text-[#aaa] text-sm resize-none"
+                                style={neuInputStyle}
                             />
                         </div>
                     </form>
                 </div>
 
-                {/* Footer - Action Buttons */}
-                <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4 flex-shrink-0 border-t border-[rgba(34,197,94,0.2)] mt-3">
+                {/* Footer */}
+                <div className="flex gap-3 p-5 sm:p-6 pt-4 flex-shrink-0">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => onOpenChange(false)}
-                        className="flex-1 h-9 sm:h-10 border-[rgba(34,197,94,0.3)] text-green-400 hover:bg-green-500/10 font-mono text-xs sm:text-sm"
+                        className="flex-1 h-11 rounded-xl text-[#888888] hover:text-[#444444] hover:bg-[#F0F0F3] font-medium"
                     >
-                        Cancelar
+                        {t('cancel')}
                     </Button>
                     <Button
                         type="submit"
                         disabled={loading || !title.trim()}
-                        className="flex-1 h-9 sm:h-10 bg-green-600 hover:bg-green-700 text-black font-mono text-xs sm:text-sm"
+                        className="flex-1 h-11 rounded-xl text-white font-medium border-0"
                         onClick={handleSubmit}
+                        style={{
+                            background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
+                            boxShadow: '4px 4px 8px rgba(163, 177, 198, 0.5), -4px -4px 8px rgba(255, 255, 255, 0.4)'
+                        }}
                     >
-                        {loading ? "Guardando..." : "Guardar Cambios"}
+                        {loading ? t('saving') : t('save')}
                     </Button>
                 </div>
             </DialogContent>
