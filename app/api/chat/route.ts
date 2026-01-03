@@ -10,7 +10,7 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: "Server configuration error" }), { status: 500 });
     }
 
-    const { question } = await req.json();
+    const { question, conversationHistory } = await req.json();
     if (!question) {
       return new Response(JSON.stringify({ error: "Question is required" }), { status: 400 });
     }
@@ -34,14 +34,69 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401 });
     }
 
+    // Fetch tasks with project info
     const { data: tasks } = await supabase
       .from("tasks")
-      .select(`title, status, priority, due_date, project:projects(name)`)
-      .eq("user_id", user.id);
+      .select(`id, title, status, priority, due_date, trigger_if, action_then, projects(name, cycle_state)`)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
 
-    const context = tasks && tasks.length > 0
-      ? `Here is a list of the user's tasks:\n${JSON.stringify(tasks, null, 2)}`
-      : "The user currently has no tasks scheduled.";
+    // Fetch projects
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, name, cycle_state, description")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    // Fetch today's time entries
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { data: timeEntries } = await supabase
+      .from("time_entries")
+      .select("duration_minutes, tasks(title)")
+      .eq("user_id", user.id)
+      .gte("start_time", today.toISOString())
+      .not("duration_minutes", "is", null);
+
+    // Calculate time statistics
+    const totalMinutesToday = (timeEntries || []).reduce((sum, e) => sum + (e.duration_minutes || 0), 0);
+    const hoursToday = Math.floor(totalMinutesToday / 60);
+    const minsToday = totalMinutesToday % 60;
+
+    // Task statistics
+    const taskStats = {
+      total: (tasks || []).length,
+      todo: (tasks || []).filter(t => t.status === 'todo').length,
+      inProgress: (tasks || []).filter(t => t.status === 'in_progress').length,
+      completed: (tasks || []).filter(t => t.status === 'completed').length,
+    };
+
+    // Format tasks for context
+    const taskContext = tasks && tasks.length > 0
+      ? `TAREAS DEL USUARIO (${taskStats.total} total, ${taskStats.todo} pendientes, ${taskStats.inProgress} en progreso):
+${(tasks || []).slice(0, 10).map(t => {
+        const projectName = (t.projects as any)?.name || 'Sin proyecto';
+        const isIfThen = t.trigger_if && t.action_then;
+        return `- ${t.title} [${t.status}] (${projectName})${isIfThen ? ' [Si-Entonces]' : ''}`;
+      }).join('\n')}`
+      : "El usuario no tiene tareas.";
+
+    // Format projects for context  
+    const projectContext = projects && projects.length > 0
+      ? `PROYECTOS DEL USUARIO (${projects.length} total):
+${(projects || []).map(p => `- ${p.name} [${p.cycle_state || 'sin estado'}]${p.description ? ': ' + p.description.substring(0, 50) : ''}`).join('\n')}`
+      : "El usuario no tiene proyectos.";
+
+    // Format time for context
+    const timeContext = `TIEMPO HOY: ${hoursToday}h ${minsToday}m trabajados`;
+
+    // Conversation history context (last 5 messages)
+    const historyContext = conversationHistory && conversationHistory.length > 0
+      ? `HISTORIAL DE CONVERSACIÓN RECIENTE:
+${conversationHistory.slice(-5).map((m: any) => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content.substring(0, 100)}`).join('\n')}`
+      : "";
 
     const todayInVenezuela = new Date().toLocaleDateString("es-VE", {
       timeZone: "America/Caracas",
@@ -49,24 +104,38 @@ export async function POST(req: Request) {
     });
 
     const prompt = `
-      You are a helpful project management assistant. 
-      Current date in Venezuela: ${todayInVenezuela}.
-      
-      CONTEXT (User's Tasks):
-      ${context}
-      
-      USER QUESTION:
-      ${question}
-      
-      INSTRUCTIONS:
-      - Answer based ONLY on the context provided.
-      - Use Markdown formatting (bold, lists) for readability.
-      - Be concise and helpful.
-    `.trim();
+Eres Agnys, un asistente de productividad especializado en gestión cognitiva de proyectos.
+Estás basado en principios de neurociencia cognitiva (Teoría de Carver & Scheier, Modelo Transteórico de Prochaska, e Intenciones de Implementación de Gollwitzer).
+
+FECHA ACTUAL: ${todayInVenezuela}
+
+CONTEXTO DEL USUARIO:
+${taskContext}
+
+${projectContext}
+
+${timeContext}
+
+${historyContext}
+
+PREGUNTA DEL USUARIO:
+${question}
+
+INSTRUCCIONES:
+1. Responde en el mismo idioma que usó el usuario (español o inglés)
+2. Sé conciso pero útil (máximo 150 palabras)
+3. Usa Markdown para formato (negrita, listas)
+4. Si preguntan sobre productividad, analiza sus tareas y tiempo
+5. Si preguntan "¿en qué debería enfocarme?", sugiere basándote en:
+   - Tareas en_progreso primero
+   - Tareas con fecha límite cercana
+   - Proyectos en ciclo "growth" o "introduction"
+6. Si preguntan "¿cómo va mi semana/día?", da un resumen de tiempo y tareas
+7. Puedes sugerir comandos del chat como "/timer [tarea]" o "/completar [tarea]"
+`.trim();
 
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const result = await model.generateContent(prompt);
     const response = await result.response;

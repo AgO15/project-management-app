@@ -8,6 +8,7 @@ import {
   CognitiveProjectList
 } from "@/components/cognitive"
 import { ChatComponent } from "@/components/chat-component"
+import { MobileChatDrawer } from "@/components/MobileChatDrawer"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { TimeReportCardWrapper } from "@/components/TimeReportCardWrapper";
@@ -40,13 +41,13 @@ export default async function DashboardPage() {
       <DashboardHeader email={data.user.email || ''}>
         <CognitiveProjectDialog>
           <Button
-            className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-2 text-white font-medium border-0"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl w-11 h-11 sm:w-auto sm:h-auto sm:px-4 sm:py-2 text-white font-medium border-0"
             style={{
               background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
               boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.5), -3px -3px 6px rgba(255, 255, 255, 0.4)'
             }}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-6 w-6 sm:h-4 sm:w-4" />
             <span className="hidden sm:inline text-sm">Nuevo</span>
           </Button>
         </CognitiveProjectDialog>
@@ -68,6 +69,9 @@ export default async function DashboardPage() {
           <CognitiveProjectList projects={projects || []} />
         </div>
       </main>
+
+      {/* Mobile Chat Drawer */}
+      <MobileChatDrawer />
     </div>
   )
 }
