@@ -183,6 +183,7 @@ function useProjectActions(project: Project) {
         isDeleting,
         isDuplicating,
         menuPosition,
+        setMenuPosition,
         handlePressStart,
         handlePressEnd,
         handleDuplicate,
@@ -371,6 +372,7 @@ function ActiveFocusCard({ project }: { project: Project }) {
                 onTouchEnd={actions.handlePressEnd}
                 onContextMenu={(e) => {
                     e.preventDefault();
+                    actions.setMenuPosition({ x: e.clientX, y: e.clientY });
                     actions.setShowContextMenu(true);
                 }}
             >
@@ -399,6 +401,7 @@ function ActiveFocusCard({ project }: { project: Project }) {
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
+                                    actions.setMenuPosition({ x: e.clientX, y: e.clientY });
                                     actions.setShowContextMenu(true);
                                 }}
                                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#D0D5DC] transition-colors"
@@ -505,6 +508,7 @@ function CompactProjectItem({ project }: { project: Project }) {
                 onTouchEnd={actions.handlePressEnd}
                 onContextMenu={(e) => {
                     e.preventDefault();
+                    actions.setMenuPosition({ x: e.clientX, y: e.clientY });
                     actions.setShowContextMenu(true);
                 }}
             >
@@ -530,6 +534,7 @@ function CompactProjectItem({ project }: { project: Project }) {
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
+                            actions.setMenuPosition({ x: e.clientX, y: e.clientY });
                             actions.setShowContextMenu(true);
                         }}
                         className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[#D0D5DC] transition-colors"
