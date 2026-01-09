@@ -282,8 +282,8 @@ export function ChatComponent() {
       return;
     }
 
-    // "¿qué tareas tengo?" / "what tasks do I have?"
-    if (/^(?:¿?qué tareas|¿?cuáles son mis tareas|what tasks|my tasks|show tasks)/i.test(userInput)) {
+    // "¿qué tareas tengo?" / "what tasks do I have?" / "mis tareas" / "ver tareas"
+    if (/^(?:¿?qué tareas|¿?cuáles son mis tareas|what tasks|my tasks|show tasks|mis tareas|ver tareas|muestra(?:me)? (?:las )?tareas)/i.test(userInput)) {
       await fetchTasks();
       if (tasks.length === 0) {
         addBotMessage(language === 'es'
@@ -300,8 +300,196 @@ export function ChatComponent() {
       return;
     }
 
-    // /help or /ayuda
-    if (/^\/(?:help|ayuda)$/i.test(userInput)) {
+    // "ver proyectos" / "mis proyectos" / "show projects" / "muéstrame los proyectos"
+    if (/^(?:ver(?: mis)? proyectos|mis proyectos|show(?: my)? projects|my projects|muéstra(?:me)?(?: los)? proyectos|proyectos)/i.test(userInput)) {
+      await fetchProjects();
+      if (projects.length === 0) {
+        addBotMessage(language === 'es'
+          ? '📁 No tienes proyectos aún. Crea uno con "crear proyecto [nombre]"'
+          : '📁 No projects yet. Create one with "create project [name]"');
+      } else {
+        const projectList = projects.map(p => `- **${p.name}**`).join('\n');
+        addBotMessage(`📁 **${language === 'es' ? 'Tus Proyectos' : 'Your Projects'}:**\n\n${projectList}`);
+      }
+      return;
+    }
+
+    // "detener" / "para" / "stop" / "parar timer" / "detén el timer"
+    if (/^(?:detener|para(?:r)?|stop|detén(?:lo)?|parar(?: el)? timer|detener(?: el)? timer|stop timer)$/i.test(userInput)) {
+      if (!activeTimer) {
+        addBotMessage(language === 'es'
+          ? '⚠️ No hay timer activo.'
+          : '⚠️ No active timer.');
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const endTime = new Date();
+        const durationMinutes = Math.round((endTime.getTime() - activeTimer.startTime.getTime()) / 60000);
+
+        await supabase
+          .from("time_entries")
+          .update({
+            end_time: endTime.toISOString(),
+            duration_minutes: durationMinutes
+          })
+          .eq("task_id", activeTimer.taskId)
+          .eq("user_id", user.id)
+          .is("end_time", null);
+
+        addBotMessage(`⏹️ ${language === 'es' ? 'Timer detenido' : 'Timer stopped'}: **${activeTimer.taskTitle}**\n\n${language === 'es' ? 'Duración:' : 'Duration:'} ${durationMinutes} ${language === 'es' ? 'minutos' : 'minutes'}`);
+        setActiveTimer(null);
+        toast({ title: language === 'es' ? "Timer detenido" : "Timer stopped" });
+      } catch (error) {
+        addBotMessage(language === 'es'
+          ? '❌ Error al detener el timer'
+          : '❌ Error stopping timer');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // "completar [tarea]" / "terminar [tarea]" / "complete [task]" / "finish [task]"
+    const naturalCompleteMatch = userInput.match(/^(?:completar|terminar|complete|finish|marca(?:r)?(?: como)? completad[ao])\s+(.+)$/i);
+    if (naturalCompleteMatch) {
+      const taskName = naturalCompleteMatch[1].toLowerCase();
+      const matchedTask = tasks.find(t => t.title.toLowerCase().includes(taskName));
+
+      if (!matchedTask) {
+        addBotMessage(language === 'es'
+          ? `❌ No encontré una tarea que contenga "${naturalCompleteMatch[1]}"`
+          : `❌ Couldn't find a task containing "${naturalCompleteMatch[1]}"`);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const supabase = createClient();
+        await supabase
+          .from("tasks")
+          .update({ status: "completed" })
+          .eq("id", matchedTask.id);
+
+        addBotMessage(`✅ **${matchedTask.title}** ${language === 'es' ? 'completada!' : 'completed!'}`);
+        await fetchTasks();
+        toast({ title: language === 'es' ? "Tarea completada" : "Task completed" });
+      } catch (error) {
+        addBotMessage(language === 'es'
+          ? '❌ Error al completar la tarea'
+          : '❌ Error completing task');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // "empieza [tarea]" / "inicia [tarea]" / "start [task]" / "comenzar timer en [tarea]"
+    const naturalTimerMatch = userInput.match(/^(?:empieza|inicia|start|comenzar|empezar)(?: timer)?(?: en| con)?\s+(.+)$/i);
+    if (naturalTimerMatch) {
+      const taskName = naturalTimerMatch[1].toLowerCase();
+      const matchedTask = tasks.find(t => t.title.toLowerCase().includes(taskName));
+
+      if (!matchedTask) {
+        addBotMessage(language === 'es'
+          ? `❌ No encontré una tarea que contenga "${naturalTimerMatch[1]}"`
+          : `❌ Couldn't find a task containing "${naturalTimerMatch[1]}"`);
+        return;
+      }
+
+      if (activeTimer) {
+        addBotMessage(language === 'es'
+          ? `⚠️ Ya tienes un timer activo en "${activeTimer.taskTitle}". Escribe "detener" primero.`
+          : `⚠️ Timer already active on "${activeTimer.taskTitle}". Say "stop" first.`);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        await supabase.from("time_entries").insert({
+          task_id: matchedTask.id,
+          user_id: user.id,
+          start_time: new Date().toISOString(),
+          description: language === 'es' ? 'Desde chat' : 'From chat',
+        });
+
+        setActiveTimer({
+          taskId: matchedTask.id,
+          taskTitle: matchedTask.title,
+          startTime: new Date()
+        });
+
+        addBotMessage(`▶️ ${language === 'es' ? 'Timer iniciado en' : 'Timer started on'} **${matchedTask.title}**\n\n${language === 'es' ? 'Escribe "detener" para parar.' : 'Say "stop" to end.'}`);
+        toast({ title: language === 'es' ? "Timer iniciado" : "Timer started" });
+      } catch (error) {
+        addBotMessage(language === 'es'
+          ? '❌ Error al iniciar el timer'
+          : '❌ Error starting timer');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // "ir a [proyecto]" / "abrir [proyecto]" / "go to [project]" / "open [project]"
+    const naturalGoMatch = userInput.match(/^(?:ir a|abrir|abre|go to|open|ve a|llévame a)\s+(.+)$/i);
+    if (naturalGoMatch) {
+      const projectName = naturalGoMatch[1].toLowerCase();
+      const matchedProject = projects.find(p => p.name.toLowerCase().includes(projectName));
+
+      if (!matchedProject) {
+        addBotMessage(language === 'es'
+          ? `❌ No encontré un proyecto que contenga "${naturalGoMatch[1]}"`
+          : `❌ Couldn't find a project containing "${naturalGoMatch[1]}"`);
+        return;
+      }
+
+      addBotMessage(`🚀 ${language === 'es' ? 'Navegando a' : 'Navigating to'} **${matchedProject.name}**...`);
+      setTimeout(() => {
+        router.push(`/projects/${matchedProject.id}`);
+      }, 500);
+      return;
+    }
+
+    // "crear proyecto [nombre]" / "create project [name]" / "nuevo proyecto [nombre]"
+    const naturalCreateProjectMatch = userInput.match(/^(?:crear proyecto|create project|nuevo proyecto|new project)\s+(.+)$/i);
+    if (naturalCreateProjectMatch) {
+      const projectName = naturalCreateProjectMatch[1].trim();
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/projects/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: projectName }),
+        });
+
+        if (!response.ok) throw new Error('Failed to create project');
+
+        const data = await response.json();
+        addBotMessage(`✅ **${language === 'es' ? 'Proyecto creado' : 'Project created'}!**\n\n${language === 'es' ? 'Nombre:' : 'Name:'} **${data.project.name}**`);
+        await fetchProjects();
+        toast({ title: language === 'es' ? "Proyecto creado" : "Project created" });
+      } catch (error) {
+        addBotMessage(language === 'es'
+          ? '❌ Error al crear el proyecto'
+          : '❌ Error creating project');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // "ayuda" / "help" / "qué puedo hacer" / "comandos"
+    if (/^(?:ayuda|help|¿?qué puedo (?:hacer|decir)|comandos|what can (?:i|you) do|commands)$/i.test(userInput)) {
       const helpContent = language === 'es'
         ? `**📋 Comandos Disponibles:**
 

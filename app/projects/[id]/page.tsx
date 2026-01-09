@@ -4,12 +4,13 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { TaskList } from "@/components/task-list"
 import { IfThenTaskDialog, ProjectCognitiveSettings } from "@/components/cognitive"
+import { IncomeRegistrationDialog, IncomeHistoryView } from "@/components/finance"
 import { ProjectHeader } from "@/components/project-header"
 import { ProjectNotes } from "@/components/project-notes"
 import { FileUpload } from "@/components/file-upload"
 import { ProjectTimeSummary } from "@/components/project-time-summary"
 import { Button } from "@/components/ui/button"
-import { Plus, ArrowLeft } from "lucide-react"
+import { Plus, ArrowLeft, DollarSign } from "lucide-react"
 import Link from "next/link"
 
 interface ProjectPageProps {
@@ -53,6 +54,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       .single()
     projectArea = area
   }
+
+  // Check if project is in Finance area
+  const isFinanceProject = projectArea?.name?.toLowerCase().includes('finanz') ||
+    projectArea?.name?.toLowerCase().includes('finance')
 
   const { data: tasks } = await supabase
     .from("tasks")
@@ -124,6 +129,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               </Button>
             </IfThenTaskDialog>
 
+            {/* Income Registration Button - Only for Finance projects */}
+            {isFinanceProject && (
+              <IncomeRegistrationDialog projectId={id}>
+                <Button
+                  className="w-full h-12 sm:h-14 text-sm sm:text-base flex items-center justify-center gap-2 rounded-2xl text-white font-medium border-0"
+                  style={{
+                    background: 'linear-gradient(145deg, #10B981, #059669)',
+                    boxShadow: '6px 6px 12px rgba(163, 177, 198, 0.5), -6px -6px 12px rgba(255, 255, 255, 0.4)'
+                  }}
+                >
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline">Registrar Ingreso</span>
+                  <span className="sm:hidden">Registrar Ingreso</span>
+                </Button>
+              </IncomeRegistrationDialog>
+            )}
+
             <TaskList
               tasks={tasks || []}
               projectId={id}
@@ -140,6 +162,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             />
 
             <ProjectTimeSummary projectId={id} />
+
+            {/* Income History - Only for Finance projects */}
+            {isFinanceProject && (
+              <IncomeHistoryView projectId={id} />
+            )}
+
             <ProjectNotes projectId={id} notes={projectNotes || []} />
             <FileUpload projectId={id} files={projectFiles || []} title="Project Files" />
           </div>

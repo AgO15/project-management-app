@@ -73,7 +73,7 @@ export interface Task {
   project_id: string;
   user_id: string;
   notes: Note[]; // Conexión con notas relacionadas
-  
+
   // Intenciones de Implementación (Gollwitzer)
   trigger_if: string | null;        // Condición disparadora: "Si..."
   action_then: string | null;       // Acción específica: "Entonces..."
@@ -97,13 +97,13 @@ export interface Project {
   color: string | null;
   status: 'active' | 'paused' | 'not_started' | 'completed' | 'archived';
   user_id: string;
-  
+
   // Coherencia Vertical (Carver & Scheier)
   area_id: string | null;           // Área de vida a la que pertenece
-  
+
   // Gestión Metabólica (Modelo Transteórico adaptado)
   cycle_state: ProjectCycleState;   // Estado actual del ciclo de vida
-  
+
   // Representación Mental y Criterios de Salida
   representation: string | null;    // Representación visual/mental del resultado deseado
   exit_criteria: string | null;     // Criterios objetivos para considerar el proyecto completado
@@ -152,4 +152,40 @@ export interface TaskWithProject extends Task {
  */
 export interface AreaWithProjects extends Area {
   projects?: Project[];
+}
+
+// ============================================================================
+// GESTIÓN FINANCIERA
+// ============================================================================
+
+/**
+ * Categoría de asignación para distribución de ingresos.
+ * Permite dividir el ingreso en diferentes categorías con porcentajes.
+ */
+export interface IncomeAllocation {
+  category: string;           // e.g., "Ahorros", "Gastos Fijos", "Inversión"
+  percentage: number;         // 0-100
+  amount_usd: number;         // Calculated from Binance rate
+  notes?: string;
+}
+
+/**
+ * Registro de ingreso con cálculos automáticos.
+ * Almacena información de salario/ingreso con tasas de cambio y distribución.
+ */
+export interface IncomeRecord {
+  id: string;
+  user_id: string;
+  project_id: string | null;
+  period_start: string;
+  period_end: string;
+  amount_bs: number;
+  rate_bcv: number;
+  rate_binance: number;
+  amount_usd_bcv: number;     // Auto-calculated: amount_bs / rate_bcv
+  amount_usd_binance: number; // Auto-calculated: amount_bs / rate_binance
+  allocations: IncomeAllocation[];
+  notes: string | null;
+  created_at: string;
+  updated_at?: string;
 }

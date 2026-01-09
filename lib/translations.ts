@@ -177,6 +177,28 @@ export const translations = {
         couldNotUpdateTask: "No se pudo actualizar la tarea. Intenta de nuevo.",
         couldNotCreateTask: "No se pudo crear la tarea. Intenta de nuevo.",
         modifyTaskDetails: "Modifica los detalles de la tarea.",
+
+        // Income Registration
+        registerIncome: "Registrar Ingreso",
+        incomeHistory: "Historial de Ingresos",
+        period: "Período",
+        from: "Desde",
+        to: "Hasta",
+        amountAndRates: "Monto y Tasas",
+        amountInBolivares: "Monto en Bolívares",
+        bcvRate: "Tasa BCV",
+        binanceRate: "Tasa Binance",
+        expenseDivision: "División de Gastos",
+        addCategory: "Agregar Categoría",
+        incomeRegistered: "Ingreso registrado",
+        requiredFields: "Campos requeridos",
+        fillRequiredFields: "Por favor complete todos los campos obligatorios",
+        invalidPercentage: "Porcentaje inválido",
+        percentageMustBe100: "Los porcentajes deben sumar exactamente 100%",
+        couldNotRegisterIncome: "No se pudo registrar el ingreso",
+        noIncomeRecords: "No hay registros de ingresos aún",
+        records: "registros",
+        allocation: "División",
     },
 
     en: {
@@ -357,6 +379,28 @@ export const translations = {
         couldNotUpdateTask: "Could not update the task. Please try again.",
         couldNotCreateTask: "Could not create the task. Please try again.",
         modifyTaskDetails: "Modify the task details.",
+
+        // Income Registration
+        registerIncome: "Register Income",
+        incomeHistory: "Income History",
+        period: "Period",
+        from: "From",
+        to: "To",
+        amountAndRates: "Amount & Rates",
+        amountInBolivares: "Amount in Bolivares",
+        bcvRate: "BCV Rate",
+        binanceRate: "Binance Rate",
+        expenseDivision: "Expense Division",
+        addCategory: "Add Category",
+        incomeRegistered: "Income registered",
+        requiredFields: "Required fields",
+        fillRequiredFields: "Please fill all required fields",
+        invalidPercentage: "Invalid percentage",
+        percentageMustBe100: "Percentages must add up to exactly 100%",
+        couldNotRegisterIncome: "Could not register income",
+        noIncomeRecords: "No income records yet",
+        records: "records",
+        allocation: "Allocation",
     }
 } as const;
 
