@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { TaskNotes } from "@/components/task-notes"
 import { TaskFiles } from "@/components/task-files"
+import { TaskChecklist } from "@/components/task-checklist"
 import { TimeTracker } from "@/components/time-tracker"
 import { EditTaskDialog } from "@/components/edit-task-dialog"
 import { cn } from "@/lib/utils"
@@ -70,6 +71,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
   const [taskNotes, setTaskNotes] = useState<Record<string, any[]>>({})
   const [taskFiles, setTaskFiles] = useState<Record<string, any[]>>({})
   const [taskTimeEntries, setTaskTimeEntries] = useState<Record<string, any[]>>({})
+  const [taskChecklistItems, setTaskChecklistItems] = useState<Record<string, any[]>>({})
 
   useEffect(() => {
     const fetchTaskData = async () => {
@@ -130,6 +132,25 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           {} as Record<string, any[]>,
         )
         setTaskTimeEntries(entriesByTask)
+      }
+
+      // Fetch checklist items
+      const { data: checklistItems } = await supabase
+        .from("checklist_items")
+        .select("*")
+        .in("task_id", taskIds)
+        .order("position", { ascending: true })
+
+      if (checklistItems) {
+        const itemsByTask = checklistItems.reduce(
+          (acc, item) => {
+            if (!acc[item.task_id]) acc[item.task_id] = []
+            acc[item.task_id].push(item)
+            return acc
+          },
+          {} as Record<string, any[]>,
+        )
+        setTaskChecklistItems(itemsByTask)
       }
     }
 
@@ -450,6 +471,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                   <div className="mt-4 pt-4 border-t border-[rgba(163,177,198,0.3)] space-y-3">
                     <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
                     <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} projectId={projectId} />
+                    <TaskChecklist taskId={task.id} items={taskChecklistItems[task.id] || []} />
                     <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />
                   </div>
                 </div>

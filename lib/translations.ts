@@ -199,6 +199,15 @@ export const translations = {
         noIncomeRecords: "No hay registros de ingresos aún",
         records: "registros",
         allocation: "División",
+
+        // Checklist
+        checklist: "Lista de Chequeo",
+        addChecklistItem: "Añadir Item",
+        checklistItemPlaceholder: "Nuevo item...",
+        noChecklistItems: "Sin items aún",
+        checklistItemAdded: "Item añadido exitosamente",
+        checklistItemDeleted: "Item eliminado",
+        couldNotCreateChecklistItem: "No se pudo crear el item",
     },
 
     en: {
@@ -401,6 +410,15 @@ export const translations = {
         noIncomeRecords: "No income records yet",
         records: "records",
         allocation: "Allocation",
+
+        // Checklist
+        checklist: "Checklist",
+        addChecklistItem: "Add Item",
+        checklistItemPlaceholder: "New item...",
+        noChecklistItems: "No items yet",
+        checklistItemAdded: "Item added successfully",
+        checklistItemDeleted: "Item deleted",
+        couldNotCreateChecklistItem: "Could not create item",
     }
 } as const;
 
