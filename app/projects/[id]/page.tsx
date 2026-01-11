@@ -149,6 +149,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <TaskList
               tasks={tasks || []}
               projectId={id}
+              projectCycleState={project.cycle_state}
             />
           </div>
 

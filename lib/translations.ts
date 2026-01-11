@@ -208,6 +208,16 @@ export const translations = {
         checklistItemAdded: "Item añadido exitosamente",
         checklistItemDeleted: "Item eliminado",
         couldNotCreateChecklistItem: "No se pudo crear el item",
+
+        // Habit Tracker
+        habitTracker: "Racha de Hábito",
+        markToday: "Marcar en Calendario",
+        habitGoodStart: "¡Buen inicio! 💪",
+        habitHalfway: "¡Vas a mitad de camino! 🎯",
+        habitAlmostThere: "¡Casi lo logras! 🔥",
+        habitFormed: "¡HÁBITO FORMADO! ⭐🎉",
+        currentStreak: "Racha actual",
+        totalDays: "Días totales",
     },
 
     en: {
@@ -419,6 +429,16 @@ export const translations = {
         checklistItemAdded: "Item added successfully",
         checklistItemDeleted: "Item deleted",
         couldNotCreateChecklistItem: "Could not create item",
+
+        // Habit Tracker
+        habitTracker: "Habit Streak",
+        markToday: "Mark on Calendar",
+        habitGoodStart: "Good start! 💪",
+        habitHalfway: "Halfway there! 🎯",
+        habitAlmostThere: "Almost there! 🔥",
+        habitFormed: "HABIT FORMED! ⭐🎉",
+        currentStreak: "Current streak",
+        totalDays: "Total days",
     }
 } as const;
 

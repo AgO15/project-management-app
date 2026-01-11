@@ -14,9 +14,11 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { TaskNotes } from "@/components/task-notes"
 import { TaskFiles } from "@/components/task-files"
 import { TaskChecklist } from "@/components/task-checklist"
+import { HabitTracker } from "@/components/habit-tracker"
 import { TimeTracker } from "@/components/time-tracker"
 import { EditTaskDialog } from "@/components/edit-task-dialog"
 import { cn } from "@/lib/utils"
+import { ProjectCycleState } from "@/lib/types"
 
 interface Task {
   id: string
@@ -32,6 +34,7 @@ interface Task {
 interface TaskListProps {
   tasks: Task[]
   projectId: string
+  projectCycleState?: ProjectCycleState
   createButton?: React.ReactNode
 }
 
@@ -58,7 +61,7 @@ const neuInsetStyle = {
   boxShadow: 'inset 2px 2px 4px rgba(163, 177, 198, 0.4), inset -2px -2px 4px rgba(255, 255, 255, 0.7)',
 }
 
-export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
+export function TaskList({ tasks, projectId, projectCycleState, createButton }: TaskListProps) {
   const [filter, setFilter] = useState("all")
   const [sortBy, setSortBy] = useState("created_at")
   const router = useRouter()
@@ -72,6 +75,7 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
   const [taskFiles, setTaskFiles] = useState<Record<string, any[]>>({})
   const [taskTimeEntries, setTaskTimeEntries] = useState<Record<string, any[]>>({})
   const [taskChecklistItems, setTaskChecklistItems] = useState<Record<string, any[]>>({})
+  const [taskHabitMarks, setTaskHabitMarks] = useState<Record<string, any[]>>({})
 
   useEffect(() => {
     const fetchTaskData = async () => {
@@ -151,6 +155,25 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
           {} as Record<string, any[]>,
         )
         setTaskChecklistItems(itemsByTask)
+      }
+
+      // Fetch habit day marks (for introduction phase)
+      const { data: habitMarks } = await supabase
+        .from("habit_day_marks")
+        .select("*")
+        .in("task_id", taskIds)
+        .order("marked_date", { ascending: true })
+
+      if (habitMarks) {
+        const marksByTask = habitMarks.reduce(
+          (acc, mark) => {
+            if (!acc[mark.task_id]) acc[mark.task_id] = []
+            acc[mark.task_id].push(mark)
+            return acc
+          },
+          {} as Record<string, any[]>,
+        )
+        setTaskHabitMarks(marksByTask)
       }
     }
 
@@ -470,6 +493,9 @@ export function TaskList({ tasks, projectId, createButton }: TaskListProps) {
                   {/* Expandable sections */}
                   <div className="mt-4 pt-4 border-t border-[rgba(163,177,198,0.3)] space-y-3">
                     <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
+                    {projectCycleState === "introduction" && (
+                      <HabitTracker taskId={task.id} marks={taskHabitMarks[task.id] || []} />
+                    )}
                     <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} projectId={projectId} />
                     <TaskChecklist taskId={task.id} items={taskChecklistItems[task.id] || []} />
                     <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />
