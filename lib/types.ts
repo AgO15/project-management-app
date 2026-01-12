@@ -126,6 +126,9 @@ export interface TimeEntry {
   user_id: string;
   tasks?: { // Opcional, para obtener el título de la tarea relacionada
     title: string;
+    projects?: {
+      name: string;
+    } | null;
   } | null;
 }
 

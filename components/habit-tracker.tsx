@@ -241,21 +241,23 @@ export function HabitTracker({ taskId, marks }: HabitTrackerProps) {
 
             <CollapsibleContent className="mt-3">
                 <div className="space-y-3 pl-6">
-                    {/* Progress bar */}
-                    <div
-                        className="h-3 rounded-full overflow-hidden"
-                        style={neuInsetStyle}
-                    >
+                    {/* Progress bar - only show when there's progress */}
+                    {totalDays > 0 && (
                         <div
-                            className="h-full rounded-full transition-all duration-500 ease-out"
-                            style={{
-                                width: `${progressPercent}%`,
-                                background: isCompleted
-                                    ? 'linear-gradient(145deg, #F59E0B, #FBBF24)'
-                                    : 'linear-gradient(145deg, #F97316, #FB923C)'
-                            }}
-                        />
-                    </div>
+                            className="h-3 rounded-full overflow-hidden"
+                            style={neuInsetStyle}
+                        >
+                            <div
+                                className="h-full rounded-full transition-all duration-500 ease-out"
+                                style={{
+                                    width: `${progressPercent}%`,
+                                    background: isCompleted
+                                        ? 'linear-gradient(145deg, #F59E0B, #FBBF24)'
+                                        : 'linear-gradient(145deg, #F97316, #FB923C)'
+                                }}
+                            />
+                        </div>
+                    )}
 
                     {/* Motivational message */}
                     {totalDays > 0 && (

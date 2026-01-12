@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/server"
 import {
   CognitiveProjectDialog,
   CognitiveCapacityBanner,
-  CognitiveProjectList
+  CognitiveProjectList,
+  IfThenTrackerWidget
 } from "@/components/cognitive"
 import { ChatComponent } from "@/components/chat-component"
 import { MobileChatDrawer } from "@/components/MobileChatDrawer"
@@ -35,6 +36,26 @@ export default async function DashboardPage() {
     .eq('user_id', data.user.id)
     .gte('start_time', sevenDaysAgo);
 
+  // Fetch If-Then tasks (tasks with trigger_if and action_then) with project data
+  const { data: ifThenTasks } = await supabase
+    .from('tasks')
+    .select(`
+      id,
+      trigger_if,
+      action_then,
+      project_id,
+      projects:project_id (
+        id,
+        name,
+        cycle_state
+      )
+    `)
+    .eq('user_id', data.user.id)
+    .not('trigger_if', 'is', null)
+    .not('action_then', 'is', null)
+    .neq('status', 'completed')
+    .order('created_at', { ascending: false });
+
   return (
     <div className="min-h-screen bg-[#E0E5EC]">
       {/* Header with Language Toggle */}
@@ -59,6 +80,9 @@ export default async function DashboardPage() {
         <div className="hidden sm:block">
           <ChatComponent />
         </div>
+
+        {/* If-Then Tracker Widget */}
+        <IfThenTrackerWidget tasks={ifThenTasks || []} />
 
         <div>
           <TimeReportCardWrapper />

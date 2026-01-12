@@ -157,7 +157,7 @@ export function TaskList({ tasks, projectId, projectCycleState, createButton }: 
         setTaskChecklistItems(itemsByTask)
       }
 
-      // Fetch habit day marks (for introduction phase)
+      // Fetch habit day marks for all tasks
       const { data: habitMarks } = await supabase
         .from("habit_day_marks")
         .select("*")
@@ -493,9 +493,7 @@ export function TaskList({ tasks, projectId, projectCycleState, createButton }: 
                   {/* Expandable sections */}
                   <div className="mt-4 pt-4 border-t border-[rgba(163,177,198,0.3)] space-y-3">
                     <TimeTracker taskId={task.id} timeEntries={taskTimeEntries[task.id] || []} />
-                    {projectCycleState === "introduction" && (
-                      <HabitTracker taskId={task.id} marks={taskHabitMarks[task.id] || []} />
-                    )}
+                    <HabitTracker taskId={task.id} marks={taskHabitMarks[task.id] || []} />
                     <TaskNotes taskId={task.id} notes={taskNotes[task.id] || []} projectId={projectId} />
                     <TaskChecklist taskId={task.id} items={taskChecklistItems[task.id] || []} />
                     <TaskFiles taskId={task.id} files={taskFiles[task.id] || []} />

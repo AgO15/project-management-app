@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 export async function GET(request: Request) {
-    
+
     // 2. Crear el almacén de cookies de Next.js
     const cookieStore = cookies();
 
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
     try {
         const { data, error } = await supabase
             .from('time_entries') // REEMPLAZA 'time_entries' por el nombre real de tu tabla
-            .select('*, tasks(title)') // 🚨 MODIFICACIÓN: Hacemos join con 'tasks' para obtener el 'title'
+            .select('*, tasks(title, projects(name))') // Join con tasks y projects para obtener el nombre del proyecto
             .eq('user_id', user.id) // Filtrar por el ID del usuario autenticado
             .gte('start_time', startDate)
             .lte('end_time', endDate); // Asegúrate que la columna se llama 'end_time' o 'start_time'

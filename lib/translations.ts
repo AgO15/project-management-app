@@ -218,6 +218,11 @@ export const translations = {
         habitFormed: "¡HÁBITO FORMADO! ⭐🎉",
         currentStreak: "Racha actual",
         totalDays: "Días totales",
+
+        // If-Then Tracker Widget
+        ifThenTracker: "Tus Si-Entonces",
+        ifThenTrackerSubtitle: "Intenciones activas por etapa",
+        noIfThenTasks: "No tienes intenciones Si-Entonces activas",
     },
 
     en: {
@@ -439,6 +444,11 @@ export const translations = {
         habitFormed: "HABIT FORMED! ⭐🎉",
         currentStreak: "Current streak",
         totalDays: "Total days",
+
+        // If-Then Tracker Widget
+        ifThenTracker: "Your If-Thens",
+        ifThenTrackerSubtitle: "Active intentions by stage",
+        noIfThenTasks: "No active If-Then intentions",
     }
 } as const;
 
