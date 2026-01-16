@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { TimeReportCardWrapper } from "@/components/TimeReportCardWrapper";
 import { DashboardHeader, DashboardSectionTitle } from "@/components/DashboardClient";
+import { NotificationSettings } from "@/components/NotificationSettings";
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -88,6 +89,9 @@ export default async function DashboardPage() {
         <div>
           <TimeReportCardWrapper />
         </div>
+
+        {/* Notification Settings */}
+        <NotificationSettings />
 
         <div>
           <DashboardSectionTitle />
