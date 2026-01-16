@@ -35,10 +35,19 @@ export async function middleware(request: NextRequest) {
   const protectedPaths = ['/dashboard', '/projects']
   const currentPath = request.nextUrl.pathname
 
+  // Redirect root path based on auth status
+  if (currentPath === '/') {
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    } else {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
+  }
+
   if (!user && protectedPaths.some(path => currentPath.startsWith(path))) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
-  
+
   if (user && currentPath.startsWith('/auth/login')) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
