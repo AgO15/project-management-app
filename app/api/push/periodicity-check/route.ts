@@ -5,12 +5,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendPushNotification, NotificationPayload } from '@/lib/push-notifications';
 
-// Supabase admin client for server-to-server
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 // Días de la semana en español
 const DAYS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
@@ -62,6 +56,12 @@ function shouldNotifyToday(periodicity: string, customDays?: string[]): boolean 
 
 export async function GET(req: Request) {
     try {
+        // Create Supabase admin client inside function to avoid build-time errors
+        const supabaseAdmin = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
         const now = new Date();
 
         // Get all If-Then tasks with periodicity that are not completed
