@@ -19,8 +19,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { Pencil, AlertCircle, Calendar } from "lucide-react"
+import { Pencil, AlertCircle, Calendar, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { TaskPeriodicity } from "@/lib/types"
 
 interface Task {
     id: string
@@ -29,6 +30,9 @@ interface Task {
     status: string
     priority: string
     due_date: string | null
+    periodicity?: TaskPeriodicity
+    trigger_if?: string | null
+    action_then?: string | null
 }
 
 interface EditTaskDialogProps {
@@ -51,6 +55,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
     const [priority, setPriority] = useState(task.priority)
     const [dueDate, setDueDate] = useState(task.due_date || "")
     const [status, setStatus] = useState(task.status)
+    const [periodicity, setPeriodicity] = useState<TaskPeriodicity>(task.periodicity || "one_time")
 
     const router = useRouter()
     const { toast } = useToast()
@@ -62,6 +67,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         setPriority(task.priority)
         setDueDate(task.due_date || "")
         setStatus(task.status)
+        setPeriodicity(task.periodicity || "one_time")
     }, [task])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +86,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                     priority,
                     due_date: dueDate || null,
                     status,
+                    periodicity,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", task.id)
@@ -217,6 +224,33 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        {/* Periodicity - shown for If-Then tasks */}
+                        {(task.trigger_if || task.action_then) && (
+                            <div className="space-y-2">
+                                <Label className="text-[#666] text-xs font-medium flex items-center gap-1">
+                                    <RefreshCw className="w-3 h-3" />
+                                    {t('periodicity')}
+                                </Label>
+                                <Select value={periodicity} onValueChange={(v: TaskPeriodicity) => setPeriodicity(v)}>
+                                    <SelectTrigger
+                                        className="h-10 rounded-xl border-0 text-[#444444] text-sm"
+                                        style={neuInputStyle}
+                                    >
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent
+                                        className="rounded-xl border-0"
+                                        style={{ backgroundColor: '#F0F0F3' }}
+                                    >
+                                        <SelectItem value="one_time" className="rounded-lg">{t('oneTime')}</SelectItem>
+                                        <SelectItem value="daily" className="rounded-lg text-purple-600">{t('daily')}</SelectItem>
+                                        <SelectItem value="weekly" className="rounded-lg text-blue-600">{t('weekly')}</SelectItem>
+                                        <SelectItem value="custom" className="rounded-lg text-amber-600">{t('custom')}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
 
                         {/* Description */}
                         <div className="space-y-2">

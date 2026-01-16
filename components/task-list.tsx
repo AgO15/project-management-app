@@ -29,6 +29,9 @@ interface Task {
   due_date: string | null
   created_at: string
   updated_at: string
+  trigger_if?: string | null
+  action_then?: string | null
+  periodicity?: 'one_time' | 'daily' | 'weekly' | 'custom'
 }
 
 interface TaskListProps {
