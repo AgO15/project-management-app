@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, TrendingUp, CheckCircle2, Pause, ChevronDown, ChevronRight, Zap, ArrowRight, RefreshCw } from "lucide-react";
+import { Sparkles, TrendingUp, CheckCircle2, Pause, ChevronDown, ChevronRight, Zap, ArrowRight, RefreshCw, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { shouldShowToday } from "@/components/WeekDaySelector";
 import type { ProjectCycleState, TaskPeriodicity } from "@/lib/types";
 
 interface IfThenTask {
@@ -13,6 +14,7 @@ interface IfThenTask {
     action_then: string;
     project_id: string;
     periodicity?: TaskPeriodicity;
+    custom_days?: string[];
     projects: {
         id: string;
         name: string;
@@ -115,7 +117,13 @@ function StageGroup({ stage, label, icon, colorClass, bgColor, tasks }: StageGro
 }
 
 export function IfThenTrackerWidget({ tasks }: IfThenTrackerWidgetProps) {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
+    const [showOnlyToday, setShowOnlyToday] = useState(true);
+
+    // Filter tasks by today if filter is enabled
+    const filteredTasks = showOnlyToday
+        ? tasks.filter(task => shouldShowToday(task.periodicity, task.custom_days))
+        : tasks;
 
     // Group tasks by project cycle_state
     const tasksByStage: Record<ProjectCycleState, IfThenTask[]> = {
@@ -125,7 +133,7 @@ export function IfThenTrackerWidget({ tasks }: IfThenTrackerWidgetProps) {
         pause: [],
     };
 
-    tasks.forEach((task) => {
+    filteredTasks.forEach((task) => {
         const project = getProject(task);
         const stage = project?.cycle_state || 'pause';
         tasksByStage[stage].push(task);
@@ -158,7 +166,15 @@ export function IfThenTrackerWidget({ tasks }: IfThenTrackerWidgetProps) {
         }
     };
 
-    const totalTasks = tasks.length;
+    const totalTasks = filteredTasks.length;
+    const allTasksCount = tasks.length;
+
+    // Get today's date formatted
+    const today = new Date();
+    const dayNames = language === 'es'
+        ? ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+        : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayName = dayNames[today.getDay()];
 
     return (
         <div
@@ -180,13 +196,36 @@ export function IfThenTrackerWidget({ tasks }: IfThenTrackerWidgetProps) {
                 </div>
                 <div>
                     <h3 className="text-base font-semibold text-[#444444]">{t('ifThenTracker')}</h3>
-                    <p className="text-xs text-[#888888]">{t('ifThenTrackerSubtitle')}</p>
+                    <p className="text-xs text-[#888888]">
+                        {showOnlyToday
+                            ? `${todayName} • ${totalTasks} ${language === 'es' ? 'para hoy' : 'for today'}`
+                            : t('ifThenTrackerSubtitle')
+                        }
+                    </p>
                 </div>
-                {totalTasks > 0 && (
-                    <span className="ml-auto text-sm font-medium text-[#888888]">
-                        {totalTasks}
-                    </span>
-                )}
+                <div className="ml-auto flex items-center gap-2">
+                    <button
+                        onClick={() => setShowOnlyToday(!showOnlyToday)}
+                        className={cn(
+                            "px-2 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1",
+                            showOnlyToday ? "text-purple-600" : "text-[#888888]"
+                        )}
+                        style={{
+                            backgroundColor: showOnlyToday ? '#F3E8FF' : '#F0F0F3',
+                            boxShadow: '2px 2px 4px rgba(163, 177, 198, 0.3), -2px -2px 4px rgba(255, 255, 255, 0.4)'
+                        }}
+                    >
+                        <Calendar className="w-3 h-3" />
+                        {showOnlyToday
+                            ? (language === 'es' ? 'Hoy' : 'Today')
+                            : (language === 'es' ? 'Todas' : 'All')}
+                    </button>
+                    {allTasksCount > 0 && (
+                        <span className="text-sm font-medium text-[#888888]">
+                            {totalTasks}/{allTasksCount}
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Content - Scrollable */}

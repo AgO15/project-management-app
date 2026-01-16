@@ -46,6 +46,7 @@ export default async function DashboardPage() {
       action_then,
       project_id,
       periodicity,
+      custom_days,
       projects:project_id (
         id,
         name,
