@@ -58,6 +58,11 @@ export interface Note {
 // ============================================================================
 
 /**
+ * Define el tipo para la periodicidad de tareas Si-Entonces.
+ */
+export type TaskPeriodicity = 'one_time' | 'daily' | 'weekly' | 'custom';
+
+/**
  * Define el tipo para una Tarea con soporte para Intenciones de Implementación.
  * El patrón "Si-Entonces" de Gollwitzer aumenta significativamente la probabilidad
  * de ejecución al vincular señales contextuales con acciones específicas.
@@ -78,6 +83,7 @@ export interface Task {
   trigger_if: string | null;        // Condición disparadora: "Si..."
   action_then: string | null;       // Acción específica: "Entonces..."
   is_micro_objective: boolean;      // Indica si es un micro-objetivo discreto
+  periodicity: TaskPeriodicity;     // Periodicidad de la intención
 }
 
 // ============================================================================

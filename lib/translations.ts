@@ -223,6 +223,13 @@ export const translations = {
         ifThenTracker: "Tus Si-Entonces",
         ifThenTrackerSubtitle: "Intenciones activas por etapa",
         noIfThenTasks: "No tienes intenciones Si-Entonces activas",
+
+        // Periodicity
+        periodicity: "Periodicidad",
+        oneTime: "Una vez",
+        daily: "Diario",
+        weekly: "Semanal",
+        custom: "Personalizado",
     },
 
     en: {
@@ -449,6 +456,13 @@ export const translations = {
         ifThenTracker: "Your If-Thens",
         ifThenTrackerSubtitle: "Active intentions by stage",
         noIfThenTasks: "No active If-Then intentions",
+
+        // Periodicity
+        periodicity: "Periodicity",
+        oneTime: "One-time",
+        daily: "Daily",
+        weekly: "Weekly",
+        custom: "Custom",
     }
 } as const;
 

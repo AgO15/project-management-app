@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, TrendingUp, CheckCircle2, Pause, ChevronDown, ChevronRight, Zap, ArrowRight } from "lucide-react";
+import { Sparkles, TrendingUp, CheckCircle2, Pause, ChevronDown, ChevronRight, Zap, ArrowRight, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { ProjectCycleState } from "@/lib/types";
+import type { ProjectCycleState, TaskPeriodicity } from "@/lib/types";
 
 interface IfThenTask {
     id: string;
     trigger_if: string;
     action_then: string;
     project_id: string;
+    periodicity?: TaskPeriodicity;
     projects: {
         id: string;
         name: string;
@@ -92,8 +93,14 @@ function StageGroup({ stage, label, icon, colorClass, bgColor, tasks }: StageGro
                                             <span className="font-semibold text-emerald-600">→</span>{" "}
                                             <span className="text-[#555555]">{task.action_then}</span>
                                         </p>
-                                        <p className="text-xs text-[#888888] mt-1.5 truncate flex items-center gap-1">
+                                        <p className="text-xs text-[#888888] mt-1.5 truncate flex items-center gap-2">
                                             <span>{project?.name}</span>
+                                            {task.periodicity && task.periodicity !== 'one_time' && (
+                                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-600 text-[10px] font-medium">
+                                                    <RefreshCw className="w-2.5 h-2.5" />
+                                                    {task.periodicity === 'daily' ? 'Diario' : task.periodicity === 'weekly' ? 'Semanal' : 'Custom'}
+                                                </span>
+                                            )}
                                             <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </p>
                                     </div>

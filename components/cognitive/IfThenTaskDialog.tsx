@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts/LanguageContext"
-import { Zap, ArrowRight, Brain, AlertCircle, Lightbulb } from "lucide-react"
+import { Zap, ArrowRight, Brain, AlertCircle, Lightbulb, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface IfThenTaskDialogProps {
@@ -50,6 +50,7 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
     const [triggerIf, setTriggerIf] = useState("")
     const [actionThen, setActionThen] = useState("")
     const [isMicroObjective, setIsMicroObjective] = useState(true)
+    const [periodicity, setPeriodicity] = useState<"one_time" | "daily" | "weekly" | "custom">("one_time")
 
     const router = useRouter()
     const { toast } = useToast()
@@ -70,6 +71,7 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
         setTriggerIf("")
         setActionThen("")
         setIsMicroObjective(true)
+        setPeriodicity("one_time")
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -95,6 +97,7 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
                 trigger_if: triggerIf.trim() || null,
                 action_then: actionThen.trim(),
                 is_micro_objective: isMicroObjective,
+                periodicity,
             })
 
             if (error) throw error
@@ -293,7 +296,7 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
                                 {t('additionalDetails')} ({t('optional')})
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                                 <div className="space-y-2">
                                     <Label className="text-[#666] text-xs font-medium">{t('priority')}</Label>
                                     <Select value={priority} onValueChange={setPriority}>
@@ -310,6 +313,30 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
                                             <SelectItem value="low" className="rounded-lg">{t('low')}</SelectItem>
                                             <SelectItem value="medium" className="rounded-lg">{t('medium')}</SelectItem>
                                             <SelectItem value="high" className="rounded-lg">{t('high')}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-[#666] text-xs font-medium flex items-center gap-1">
+                                        <RefreshCw className="w-3 h-3" />
+                                        {t('periodicity')}
+                                    </Label>
+                                    <Select value={periodicity} onValueChange={(v: "one_time" | "daily" | "weekly" | "custom") => setPeriodicity(v)}>
+                                        <SelectTrigger
+                                            className="h-10 rounded-xl border-0 text-[#444444] text-sm"
+                                            style={neuInputStyle}
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent
+                                            className="rounded-xl border-0"
+                                            style={{ backgroundColor: '#F0F0F3' }}
+                                        >
+                                            <SelectItem value="one_time" className="rounded-lg">{t('oneTime')}</SelectItem>
+                                            <SelectItem value="daily" className="rounded-lg">{t('daily')}</SelectItem>
+                                            <SelectItem value="weekly" className="rounded-lg">{t('weekly')}</SelectItem>
+                                            <SelectItem value="custom" className="rounded-lg">{t('custom')}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
