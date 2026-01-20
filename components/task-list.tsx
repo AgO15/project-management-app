@@ -32,6 +32,7 @@ interface Task {
   trigger_if?: string | null
   action_then?: string | null
   periodicity?: 'one_time' | 'daily' | 'weekly' | 'custom'
+  custom_days?: string
 }
 
 interface TaskListProps {
