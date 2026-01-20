@@ -22,6 +22,7 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { Pencil, AlertCircle, Calendar, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { TaskPeriodicity } from "@/lib/types"
+import { WeekDaySelector } from "@/components/WeekDaySelector"
 
 interface Task {
     id: string
@@ -33,6 +34,7 @@ interface Task {
     periodicity?: TaskPeriodicity
     trigger_if?: string | null
     action_then?: string | null
+    custom_days?: string
 }
 
 interface EditTaskDialogProps {
@@ -56,6 +58,13 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
     const [dueDate, setDueDate] = useState(task.due_date || "")
     const [status, setStatus] = useState(task.status)
     const [periodicity, setPeriodicity] = useState<TaskPeriodicity>(task.periodicity || "one_time")
+    const [customDays, setCustomDays] = useState<string[]>(() => {
+        try {
+            return task.custom_days ? JSON.parse(task.custom_days) : []
+        } catch {
+            return []
+        }
+    })
 
     const router = useRouter()
     const { toast } = useToast()
@@ -68,6 +77,11 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         setDueDate(task.due_date || "")
         setStatus(task.status)
         setPeriodicity(task.periodicity || "one_time")
+        try {
+            setCustomDays(task.custom_days ? JSON.parse(task.custom_days) : [])
+        } catch {
+            setCustomDays([])
+        }
     }, [task])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -87,6 +101,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                     due_date: dueDate || null,
                     status,
                     periodicity,
+                    custom_days: customDays.length > 0 ? JSON.stringify(customDays) : null,
                     updated_at: new Date().toISOString(),
                 })
                 .eq("id", task.id)
@@ -249,6 +264,25 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                                         <SelectItem value="custom" className="rounded-lg text-amber-600">{t('custom')}</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </div>
+                        )}
+
+                        {/* Custom Days Selector - shown when periodicity is weekly or custom */}
+                        {(task.trigger_if || task.action_then) && (periodicity === 'weekly' || periodicity === 'custom') && (
+                            <div className="space-y-2">
+                                <Label className="text-[#666] text-xs font-medium">
+                                    {periodicity === 'weekly' ? t('weeklyOn') : t('customDays')}
+                                </Label>
+                                <WeekDaySelector
+                                    selectedDays={customDays}
+                                    onChange={setCustomDays}
+                                />
+                                {customDays.length === 0 && (
+                                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        {t('selectAtLeastOneDay')}
+                                    </p>
+                                )}
                             </div>
                         )}
 

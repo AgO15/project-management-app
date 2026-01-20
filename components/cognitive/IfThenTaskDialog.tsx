@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { Zap, ArrowRight, Brain, AlertCircle, Lightbulb, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { WeekDaySelector } from "@/components/WeekDaySelector"
 
 interface IfThenTaskDialogProps {
     children: React.ReactNode
@@ -51,6 +52,7 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
     const [actionThen, setActionThen] = useState("")
     const [isMicroObjective, setIsMicroObjective] = useState(true)
     const [periodicity, setPeriodicity] = useState<"one_time" | "daily" | "weekly" | "custom">("one_time")
+    const [customDays, setCustomDays] = useState<string[]>([])
 
     const router = useRouter()
     const { toast } = useToast()
@@ -72,6 +74,7 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
         setActionThen("")
         setIsMicroObjective(true)
         setPeriodicity("one_time")
+        setCustomDays([])
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -98,6 +101,7 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
                 action_then: actionThen.trim(),
                 is_micro_objective: isMicroObjective,
                 periodicity,
+                custom_days: customDays.length > 0 ? JSON.stringify(customDays) : null,
             })
 
             if (error) throw error
@@ -350,6 +354,25 @@ export function IfThenTaskDialog({ children, projectId, projectRepresentation }:
                                     />
                                 </div>
                             </div>
+
+                            {/* Custom Days Selector - shown when periodicity is weekly or custom */}
+                            {(periodicity === 'weekly' || periodicity === 'custom') && (
+                                <div className="space-y-2">
+                                    <Label className="text-[#666] text-xs font-medium">
+                                        {periodicity === 'weekly' ? t('weeklyOn') : t('customDays')}
+                                    </Label>
+                                    <WeekDaySelector
+                                        selectedDays={customDays}
+                                        onChange={setCustomDays}
+                                    />
+                                    {customDays.length === 0 && (
+                                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3" />
+                                            {t('selectAtLeastOneDay')}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label className="text-[#666] text-xs font-medium">{t('additionalNotes')}</Label>

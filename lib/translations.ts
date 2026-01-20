@@ -230,6 +230,9 @@ export const translations = {
         daily: "Diario",
         weekly: "Semanal",
         custom: "Personalizado",
+        weeklyOn: "Semanal los días",
+        customDays: "Días personalizados",
+        selectAtLeastOneDay: "Selecciona al menos un día",
     },
 
     en: {
@@ -463,6 +466,9 @@ export const translations = {
         daily: "Daily",
         weekly: "Weekly",
         custom: "Custom",
+        weeklyOn: "Weekly on",
+        customDays: "Custom days",
+        selectAtLeastOneDay: "Select at least one day",
     }
 } as const;
 
