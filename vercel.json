@@ -1,0 +1,20 @@
+{
+    "crons": [
+        {
+            "path": "/api/push/check-notifications",
+            "schedule": "0 8 * * *"
+        },
+        {
+            "path": "/api/push/periodicity-check",
+            "schedule": "0 9 * * *"
+        },
+        {
+            "path": "/api/push/daily-completion-check",
+            "schedule": "0 18 * * *"
+        },
+        {
+            "path": "/api/push/streak-reminder",
+            "schedule": "0 20 * * *"
+        }
+    ]
+}
