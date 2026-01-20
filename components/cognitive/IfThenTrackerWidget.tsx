@@ -14,7 +14,7 @@ interface IfThenTask {
     action_then: string;
     project_id: string;
     periodicity?: TaskPeriodicity;
-    custom_days?: string[];
+    custom_days?: string | string[]; // Can be JSON string from DB or parsed array
     projects: {
         id: string;
         name: string;
@@ -122,7 +122,22 @@ export function IfThenTrackerWidget({ tasks }: IfThenTrackerWidgetProps) {
 
     // Filter tasks by today if filter is enabled
     const filteredTasks = showOnlyToday
-        ? tasks.filter(task => shouldShowToday(task.periodicity, task.custom_days))
+        ? tasks.filter(task => {
+            // Parse custom_days if it's a JSON string
+            let parsedDays: string[] | undefined;
+            if (task.custom_days) {
+                if (typeof task.custom_days === 'string') {
+                    try {
+                        parsedDays = JSON.parse(task.custom_days);
+                    } catch {
+                        parsedDays = [];
+                    }
+                } else {
+                    parsedDays = task.custom_days;
+                }
+            }
+            return shouldShowToday(task.periodicity, parsedDays);
+        })
         : tasks;
 
     // Group tasks by project cycle_state
