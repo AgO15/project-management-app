@@ -123,6 +123,11 @@ export function IfThenTrackerWidget({ tasks }: IfThenTrackerWidgetProps) {
     // Filter tasks by today if filter is enabled
     const filteredTasks = showOnlyToday
         ? tasks.filter(task => {
+            // Exclude tasks without periodicity or with one_time periodicity
+            if (!task.periodicity || task.periodicity === 'one_time') {
+                return false;
+            }
+
             // Parse custom_days if it's a JSON string
             let parsedDays: string[] | undefined;
             if (task.custom_days) {
@@ -138,7 +143,10 @@ export function IfThenTrackerWidget({ tasks }: IfThenTrackerWidgetProps) {
             }
             return shouldShowToday(task.periodicity, parsedDays);
         })
-        : tasks;
+        : tasks.filter(task => {
+            // Even when showing all, exclude tasks without periodicity or with one_time
+            return task.periodicity && task.periodicity !== 'one_time';
+        });
 
     // Group tasks by project cycle_state
     const tasksByStage: Record<ProjectCycleState, IfThenTask[]> = {
