@@ -7,8 +7,9 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell
 } from "recharts"
-import { Clock, TrendingUp, Calendar, BarChart3 } from "lucide-react"
+import { Clock, TrendingUp, Calendar, BarChart3, Download } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
 
 // Neumorphic styles
 const neuCardStyle = {
@@ -63,6 +64,31 @@ export function ReportsDashboard() {
     const [timeRange, setTimeRange] = useState("7")
     const [loading, setLoading] = useState(true)
     const [timeEntries, setTimeEntries] = useState<TimeEntryWithTask[]>([])
+    const [exporting, setExporting] = useState(false)
+
+    // Export all data as JSON for AI assessment
+    const handleExport = async () => {
+        setExporting(true)
+        try {
+            const response = await fetch('/api/export')
+            if (!response.ok) throw new Error('Export failed')
+
+            const blob = await response.blob()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `project-data-export-${new Date().toISOString().split('T')[0]}.json`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+        } catch (error) {
+            console.error('Export error:', error)
+            alert(language === 'es' ? 'Error al exportar datos' : 'Failed to export data')
+        } finally {
+            setExporting(false)
+        }
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -165,20 +191,36 @@ export function ReportsDashboard() {
                         {language === 'es' ? 'Análisis de tu productividad' : 'Productivity analysis'}
                     </p>
                 </div>
-                <Select value={timeRange} onValueChange={setTimeRange}>
-                    <SelectTrigger
-                        className="w-[180px] h-10 rounded-xl border-0 text-[#444444]"
-                        style={neuInsetStyle}
+                <div className="flex items-center gap-3">
+                    <Button
+                        onClick={handleExport}
+                        disabled={exporting}
+                        className="h-10 px-4 rounded-xl border-0 text-white font-medium"
+                        style={{
+                            background: 'linear-gradient(145deg, #7C9EBC, #6B8DAB)',
+                            boxShadow: '3px 3px 6px rgba(163, 177, 198, 0.5), -3px -3px 6px rgba(255, 255, 255, 0.4)'
+                        }}
                     >
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-0" style={{ backgroundColor: '#F0F0F3' }}>
-                        <SelectItem value="7" className="rounded-lg">{rangeLabels['7']}</SelectItem>
-                        <SelectItem value="14" className="rounded-lg">{rangeLabels['14']}</SelectItem>
-                        <SelectItem value="30" className="rounded-lg">{rangeLabels['30']}</SelectItem>
-                        <SelectItem value="90" className="rounded-lg">{rangeLabels['90']}</SelectItem>
-                    </SelectContent>
-                </Select>
+                        <Download className="h-4 w-4 mr-2" />
+                        {exporting
+                            ? (language === 'es' ? 'Exportando...' : 'Exporting...')
+                            : (language === 'es' ? 'Exportar para IA' : 'Export for AI')}
+                    </Button>
+                    <Select value={timeRange} onValueChange={setTimeRange}>
+                        <SelectTrigger
+                            className="w-[180px] h-10 rounded-xl border-0 text-[#444444]"
+                            style={neuInsetStyle}
+                        >
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-0" style={{ backgroundColor: '#F0F0F3' }}>
+                            <SelectItem value="7" className="rounded-lg">{rangeLabels['7']}</SelectItem>
+                            <SelectItem value="14" className="rounded-lg">{rangeLabels['14']}</SelectItem>
+                            <SelectItem value="30" className="rounded-lg">{rangeLabels['30']}</SelectItem>
+                            <SelectItem value="90" className="rounded-lg">{rangeLabels['90']}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             {loading ? (
